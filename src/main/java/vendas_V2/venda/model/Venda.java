@@ -35,9 +35,6 @@ public class Venda {
     @Column(nullable = false)
     private LocalDateTime dataCadastro;
 
-    @Column(nullable = false)
-    private Double valorTotalDeVendas;
-
     public static Venda convert(Long vendedorId, Long produtoId, Integer quantidade, BigDecimal totalVendas) {
         var venda = new Venda();
         venda.setVendedorId(vendedorId);

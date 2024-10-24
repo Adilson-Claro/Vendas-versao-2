@@ -30,6 +30,21 @@ public class VendaController {
         return ResponseEntity.ok(vendas);
     }
 
+    @DeleteMapping("{id}")
+    public ResponseEntity<Void> deletarVenda(@PathVariable Long id) {
+        vendaService.deletarVenda(id);
+        return ResponseEntity.noContent().build(); //retorna 204 de venda deletada com sucesso
+    }
+
+    @PutMapping("{id}")
+    public ResponseEntity<VendaResponseCompleta> alterarVenda(
+            @PathVariable Long id,
+            @RequestBody VendaRequest vendaRequest) {
+
+        var vendaAtualizada = vendaService.alterarVenda(id, vendaRequest);
+
+        return ResponseEntity.ok(vendaAtualizada);
+    }
 }
 
 

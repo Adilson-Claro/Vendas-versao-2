@@ -7,7 +7,9 @@ public record VendaResponseCompleta(VendaResponse venda,
                                     ProdutoResponse produto,
                                     VendedorResponse vendedor) {
 
-    public static VendaResponseCompleta convert(VendaResponse venda, ProdutoResponse produto, VendedorResponse vendedor) {
+    public static VendaResponseCompleta convert(VendaResponse venda,
+                                                ProdutoResponse produto,
+                                                VendedorResponse vendedor) {
         return new VendaResponseCompleta(venda,
                 produto,
                 vendedor);
