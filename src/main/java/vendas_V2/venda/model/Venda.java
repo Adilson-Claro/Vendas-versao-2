@@ -7,9 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Entity
 @Getter
@@ -47,7 +45,6 @@ public class Venda {
         venda.setQuantidade(quantidade);
         venda.setTotalVendas(totalVendas);
         venda.setDataCadastro(LocalDateTime.now());
-        venda.setValorTotalDeVendas(totalVendas.doubleValue() * quantidade);
         return venda;
     }
 
