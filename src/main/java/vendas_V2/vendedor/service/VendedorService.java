@@ -3,6 +3,7 @@ package vendas_V2.vendedor.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import vendas_V2.common.utils.NotFoundException;
+import vendas_V2.common.utils.validations.Validations;
 import vendas_V2.vendedor.dto.VendedorRequest;
 import vendas_V2.vendedor.dto.VendedorResponse;
 import vendas_V2.vendedor.model.Vendedor;
@@ -15,6 +16,7 @@ import java.util.List;
 public class VendedorService {
 
     private final VendedorRepository vendedorRepository;
+    private final Validations validations;
 
     public Vendedor salvarVendedor(VendedorRequest request) {
 
@@ -39,5 +41,11 @@ public class VendedorService {
         return vendedor.stream()
                 .map(VendedorResponse::convert)
                 .toList();
+    }
+    public void deletarVendedor(Long id) {
+
+        var vendedor = validations.verificarVendedorExistente(id);
+
+        vendedorRepository.deleteById(id);
     }
 }

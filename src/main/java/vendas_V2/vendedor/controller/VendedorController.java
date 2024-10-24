@@ -29,4 +29,10 @@ public class VendedorController {
         var vendedores = vendedorService.buscarVendedor();
         return ResponseEntity.ok(vendedores);
     }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<Void> deletarVendedor(@PathVariable Long id) {
+        vendedorService.deletarVendedor(id);
+        return ResponseEntity.noContent().build(); //retorna 204 de venda deletada com sucesso
+    }
 }

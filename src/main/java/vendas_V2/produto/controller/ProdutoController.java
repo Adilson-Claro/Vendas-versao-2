@@ -35,4 +35,10 @@ public class ProdutoController {
         return ResponseEntity.ok(produtoAlterado);
     }
 
+    @DeleteMapping("{id}")
+    public ResponseEntity<Void> deletarProduto(@PathVariable Long id) {
+        produtoService.deletarProduto(id);
+        return ResponseEntity.noContent().build(); //retorna 204 de venda deletada com sucesso
+    }
+
 }

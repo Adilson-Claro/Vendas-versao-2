@@ -3,6 +3,7 @@ package vendas_V2.produto.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import vendas_V2.common.utils.NotFoundException;
+import vendas_V2.common.utils.validations.Validations;
 import vendas_V2.produto.dto.ProdutoRequest;
 import vendas_V2.produto.dto.ProdutoResponse;
 import vendas_V2.produto.model.Produto;
@@ -16,6 +17,7 @@ import java.util.List;
 public class ProdutoService {
 
     private final ProdutoRepository produtoRepository;
+    private final Validations validations;
 
     public Produto salvarProduto(ProdutoRequest request) {
 
@@ -54,7 +56,12 @@ public class ProdutoService {
         }
 
         return null;
+    }
 
+    public void deletarProduto(Long id) {
 
+        var produto = validations.verificarProdutoExistente(id);
+
+        produtoRepository.deleteById(id);
     }
 }
