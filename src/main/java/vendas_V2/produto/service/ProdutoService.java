@@ -28,6 +28,7 @@ public class ProdutoService {
     }
 
     private Produto construirProduto(String nome, BigDecimal valor) {
+
         return Produto.convert(null, nome, valor);
     }
 
@@ -44,7 +45,7 @@ public class ProdutoService {
                 .toList();
     }
 
-    public Produto alterarProduto(ProdutoRequest request) {
+    public Produto atualizarProduto(ProdutoRequest request) {
 
         var localizarProduto = produtoRepository.findById(request.id());
 
@@ -63,5 +64,17 @@ public class ProdutoService {
         var produto = validations.verificarProdutoExistente(id);
 
         produtoRepository.deleteById(id);
+    }
+
+    public ProdutoResponse atualizarProduto(Long id, ProdutoRequest request) {
+
+        var existProduto = validations.verificarProdutoExistente(id);
+
+        existProduto.setNome(request.nome());
+        existProduto.setValor(request.valor());
+
+        var produtoAtualizado = produtoRepository.save(existProduto);
+
+        return ProdutoResponse.convert(produtoAtualizado);
     }
 }

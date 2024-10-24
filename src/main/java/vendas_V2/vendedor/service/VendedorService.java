@@ -48,4 +48,16 @@ public class VendedorService {
 
         vendedorRepository.deleteById(id);
     }
+
+    public VendedorResponse atualizarVendedor(Long id, VendedorRequest request) {
+
+        var existVendedor = validations.verificarVendedorExistente(id);
+
+        existVendedor.setNome(request.nome());
+        existVendedor.setCpf(request.cpf());
+
+        var vendedorAtualizado = vendedorRepository.save(existVendedor);
+
+        return VendedorResponse.convert(vendedorAtualizado);
+    }
 }
