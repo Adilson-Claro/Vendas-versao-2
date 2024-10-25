@@ -18,9 +18,9 @@ public class ProdutoController {
     private final ProdutoService produtoService;
 
     @PostMapping
-    public ResponseEntity<ProdutoResponse> salvarProduto(@RequestBody @Valid ProdutoRequest request) {
+    public ResponseEntity<String> salvarProduto(@RequestBody @Valid ProdutoRequest request) {
         var produtoCriado = ProdutoResponse.convert(produtoService.salvarProduto(request));
-        return ResponseEntity.ok(produtoCriado);
+        return ResponseEntity.ok("Produto cadastrado com sucesso!");
     }
 
     @RequestMapping
@@ -38,17 +38,17 @@ public class ProdutoController {
     @DeleteMapping("{id}")
     public ResponseEntity<Void> deletarProduto(@PathVariable Long id) {
         produtoService.deletarProduto(id);
-        return ResponseEntity.noContent().build(); //retorna 204 de venda deletada com sucesso
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<ProdutoResponse> atualizarProduto(
+    public ResponseEntity<String> atualizarProduto(
             @PathVariable Long id,
             @RequestBody ProdutoRequest produtoRequest) {
 
         var produtoAtualizado = produtoService.atualizarProduto(id, produtoRequest);
 
-        return ResponseEntity.ok(produtoAtualizado);
+        return ResponseEntity.ok("Dados do produto atualizado com sucesso!");
     }
 
 }

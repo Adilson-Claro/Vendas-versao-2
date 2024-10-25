@@ -19,7 +19,13 @@ public class VendaController {
     private final VendaService vendaService;
 
     @PostMapping
-    public ResponseEntity<VendaRequest> salvarVenda(@RequestBody @Valid VendaRequest request) {
+    public ResponseEntity<VendaRequest> criarVenda(@RequestBody @Valid VendaRequest request) {
+        vendaService.salvarVenda(request);
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+    }
+
+    @PostMapping("aprovada")
+    public ResponseEntity<VendaRequest> aprovarVenda(@RequestBody @Valid VendaRequest request) {
         vendaService.salvarVenda(request);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -31,19 +37,19 @@ public class VendaController {
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<Void> deletarVenda(@PathVariable Long id) {
-        vendaService.deletarVenda(id);
-        return ResponseEntity.noContent().build(); //retorna 204 de venda deletada com sucesso
+    public ResponseEntity<Void> cancelarVenda(@PathVariable Long id) {
+        vendaService.cancelarVenda(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<VendaResponseCompleta> alterarVenda(
+    public ResponseEntity<String> alterarVenda(
             @PathVariable Long id,
             @RequestBody VendaRequest vendaRequest) {
 
         var vendaAtualizada = vendaService.alterarVenda(id, vendaRequest);
 
-        return ResponseEntity.ok(vendaAtualizada);
+        return ResponseEntity.ok("Venda atualizada com sucesso!");
     }
 }
 

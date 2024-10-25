@@ -35,7 +35,7 @@ public class VendaService {
         vendaRepository.save(venda);
     }
 
-    public List<VendaResponseCompleta> buscarVendas() {
+    public List<VendaResponseCompleta> buscarVendas(Long id) {
         var vendas = vendaRepository.findAll();
 
         return vendas
@@ -43,6 +43,7 @@ public class VendaService {
                 .map(venda -> {
                     var vendedor = validations.verificarVendedorExistente(venda.getVendedorId());
                     var produto = validations.verificarProdutoExistente(venda.getProdutoId());
+                    var venda = validations.verificarVendaExistente(id);
 
                     return VendaResponseCompleta.convert(VendaResponse.convert(venda),
                             ProdutoResponse.convert(produto),
@@ -50,7 +51,7 @@ public class VendaService {
                 }).toList();
     }
 
-    public void deletarVenda(Long id) {
+    public void cancelarVenda(Long id) {
 
         var venda = validations.verificarVendaExistente(id);
 

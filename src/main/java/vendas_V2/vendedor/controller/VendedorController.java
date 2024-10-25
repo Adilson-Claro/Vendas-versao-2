@@ -4,8 +4,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import vendas_V2.produto.dto.ProdutoRequest;
-import vendas_V2.produto.dto.ProdutoResponse;
 import vendas_V2.vendedor.dto.VendedorRequest;
 import vendas_V2.vendedor.dto.VendedorResponse;
 import vendas_V2.vendedor.service.VendedorService;
@@ -20,10 +18,10 @@ public class VendedorController {
     private final VendedorService vendedorService;
 
     @PostMapping
-    public ResponseEntity<VendedorResponse> salvarVendedor(@RequestBody @Valid VendedorRequest request) {
+    public ResponseEntity<String> salvarVendedor(@RequestBody @Valid VendedorRequest request) {
         var vendedorCriado = VendedorResponse.convert(vendedorService.salvarVendedor(request));
 
-        return ResponseEntity.ok(vendedorCriado);
+        return ResponseEntity.ok("Vendedor cadastrado com sucesso!");
     }
 
     @GetMapping
@@ -39,12 +37,12 @@ public class VendedorController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<VendedorResponse> atualizarVendedor(
+    public ResponseEntity<String> atualizarVendedor(
             @PathVariable Long id,
             @RequestBody VendedorRequest request) {
 
         var vendedorAtualizado = vendedorService.atualizarVendedor(id, request);
 
-        return ResponseEntity.ok(vendedorAtualizado);
+        return ResponseEntity.ok("Dados do vendedor atualizados com sucesso!");
     }
 }
