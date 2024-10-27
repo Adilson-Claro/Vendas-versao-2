@@ -11,7 +11,6 @@ import vendas_V2.venda.dto.VendaResponseCompleta;
 import vendas_V2.venda.repository.VendaRepository;
 import vendas_V2.vendedor.dto.VendedorResponse;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,13 +44,16 @@ public class VendaService {
 
                     double valorTotal = calculos.calcularValorTotal(venda.getQuantidade(), produto.getValor());
 
+                    double mediaVendas = calculos.calcularMediaVendas(valorTotal, totalVendas);
+
                     return VendaResponseCompleta.convert(
-                            VendaResponse.convert(existVenda, totalVendas, valorTotal),
+                            VendaResponse.convert(existVenda, totalVendas, valorTotal, mediaVendas), // Passa valor total e média
                             ProdutoResponse.convert(produto),
                             VendedorResponse.convert(vendedor)
                     );
                 }).collect(Collectors.toList());
     }
+
 
     public void cancelarVenda(Long id) {
 
@@ -65,19 +67,30 @@ public class VendaService {
         var vendedor = validations.verificarVendedorExistente(vendaExistente.getVendedorId());
         var produto = validations.verificarProdutoExistente(vendaExistente.getProdutoId());
 
+        // Atualiza a quantidade da venda existente
         vendaExistente.setQuantidade(vendaRequest.quantidade());
 
+        // Salva a venda atualizada
         var vendaAtualizada = vendaRepository.save(vendaExistente);
 
+        // Calcula o total de vendas do vendedor
         var totalVendas = calculos.calcularTotalVendasPorVendedor(vendedor.getId());
 
+        // Calcula o valor total da venda
         double valorTotal = calculos.calcularValorTotal(vendaAtualizada.getQuantidade(), produto.getValor());
 
+        // Utiliza o método calcularMediaVendas para obter a média
+        double mediaVendas = calculos.calcularMediaVendas(valorTotal, totalVendas);
+
+        // Retorna a resposta completa com valor total e média
         return VendaResponseCompleta.convert(
-                VendaResponse.convert(vendaAtualizada, totalVendas, valorTotal),
+                VendaResponse.convert(vendaAtualizada, totalVendas, valorTotal, mediaVendas), // Passa valor total e média
                 ProdutoResponse.convert(produto),
                 VendedorResponse.convert(vendedor)
         );
     }
+
+
+
 }
 

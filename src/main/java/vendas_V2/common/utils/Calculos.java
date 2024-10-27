@@ -29,4 +29,12 @@ public class Calculos {
                 .multiply(valorUnitario)
                 .doubleValue();
     }
+
+    public Double calcularMediaVendas(Double valorTotal, Integer totalVendas) {
+        if (totalVendas == 0) {
+            return 0.0;
+        }
+        return valorTotal / totalVendas;
+    }
+
 }
