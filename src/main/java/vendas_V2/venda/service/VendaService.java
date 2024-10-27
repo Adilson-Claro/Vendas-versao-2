@@ -41,11 +41,9 @@ public class VendaService {
                     var produto = validations.verificarProdutoExistente(venda.getProdutoId());
                     var existVenda = validations.verificarVendaExistente(venda.getId());
 
-                    var totalVendas = calcularTotalVendasPorVendedor(vendedor.getId());
+                    var totalVendas = calculos.calcularTotalVendasPorVendedor(vendedor.getId());
 
-                    double valorTotal = BigDecimal.valueOf(venda.getQuantidade())
-                            .multiply(produto.getValor())
-                            .doubleValue();
+                    double valorTotal = calculos.calcularValorTotal(venda.getQuantidade(), produto.getValor());
 
                     return VendaResponseCompleta.convert(
                             VendaResponse.convert(existVenda, totalVendas, valorTotal),
@@ -71,22 +69,15 @@ public class VendaService {
 
         var vendaAtualizada = vendaRepository.save(vendaExistente);
 
-        var totalVendas = calcularTotalVendasPorVendedor(vendedor.getId());
+        var totalVendas = calculos.calcularTotalVendasPorVendedor(vendedor.getId());
 
-        double valorTotal = BigDecimal.valueOf(vendaAtualizada.getQuantidade())
-                .multiply(produto.getValor())
-                .doubleValue();
+        double valorTotal = calculos.calcularValorTotal(vendaAtualizada.getQuantidade(), produto.getValor());
 
         return VendaResponseCompleta.convert(
                 VendaResponse.convert(vendaAtualizada, totalVendas, valorTotal),
                 ProdutoResponse.convert(produto),
                 VendedorResponse.convert(vendedor)
         );
-    }
-
-    private Integer calcularTotalVendasPorVendedor(Long vendedorId) {
-        var vendasDoVendedor = vendaRepository.findByVendedorId(vendedorId);
-        return vendasDoVendedor.size();
     }
 }
 
