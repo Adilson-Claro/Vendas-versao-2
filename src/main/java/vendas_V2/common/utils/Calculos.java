@@ -2,12 +2,12 @@ package vendas_V2.common.utils;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import vendas_V2.common.utils.validations.Validations;
 import vendas_V2.venda.model.Venda;
 import vendas_V2.venda.repository.VendaRepository;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 @Component
 @RequiredArgsConstructor
@@ -37,4 +37,13 @@ public class Calculos {
         return valorTotal / totalVendas;
     }
 
+    public Double calcularMediaVendasPorPeriodo(Double valorTotal, Integer totalVendas, LocalDate dataInicio, LocalDate dataFim) {
+        var dias = ChronoUnit.DAYS.between(dataInicio, dataFim) + 1; // +1 para incluir o dia de início
+
+        if (dias <= 0 || totalVendas == 0) {
+            return 0.0;
+        }
+
+        return valorTotal / dias;
+    }
 }

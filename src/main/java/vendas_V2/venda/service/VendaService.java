@@ -8,9 +8,14 @@ import vendas_V2.produto.dto.ProdutoResponse;
 import vendas_V2.venda.dto.VendaRequest;
 import vendas_V2.venda.dto.VendaResponse;
 import vendas_V2.venda.dto.VendaResponseCompleta;
+import vendas_V2.venda.dto.VendasPorPeriodoRequest;
+import vendas_V2.venda.model.Venda;
 import vendas_V2.venda.repository.VendaRepository;
 import vendas_V2.vendedor.dto.VendedorResponse;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,9 +47,9 @@ public class VendaService {
 
                     var totalVendas = calculos.calcularTotalVendasPorVendedor(vendedor.getId());
 
-                    double valorTotal = calculos.calcularValorTotal(venda.getQuantidade(), produto.getValor());
+                    var valorTotal = calculos.calcularValorTotal(venda.getQuantidade(), produto.getValor());
 
-                    double mediaVendas = calculos.calcularMediaVendas(valorTotal, totalVendas);
+                    var mediaVendas = calculos.calcularMediaVendas(valorTotal, totalVendas);
 
                     return VendaResponseCompleta.convert(
                             VendaResponse.convert(existVenda, totalVendas, valorTotal, mediaVendas), // Passa valor total e média
@@ -77,10 +82,10 @@ public class VendaService {
         var totalVendas = calculos.calcularTotalVendasPorVendedor(vendedor.getId());
 
         // Calcula o valor total da venda
-        double valorTotal = calculos.calcularValorTotal(vendaAtualizada.getQuantidade(), produto.getValor());
+        var valorTotal = calculos.calcularValorTotal(vendaAtualizada.getQuantidade(), produto.getValor());
 
         // Utiliza o método calcularMediaVendas para obter a média
-        double mediaVendas = calculos.calcularMediaVendas(valorTotal, totalVendas);
+        var mediaVendas = calculos.calcularMediaVendas(valorTotal, totalVendas);
 
         // Retorna a resposta completa com valor total e média
         return VendaResponseCompleta.convert(
@@ -90,6 +95,40 @@ public class VendaService {
         );
     }
 
+    public List<VendaResponseCompleta> buscarVendasPorPeriodo(VendasPorPeriodoRequest request) {
+        var dataInicio = request.getDataInicio();
+        var dataFim = request.getDataFim();
+
+        var vendas = vendaRepository.findAllByDataCadastroBetween(dataInicio.atStartOfDay(), dataFim.atTime(23, 59, 59));
+
+        var valorTotal = 0;
+        var totalVendas = vendas.size();
+
+        // Calcular o valor total das vendas
+        for (Venda venda : vendas) {
+            var produto = validations.verificarProdutoExistente(venda.getProdutoId());
+            valorTotal += calculos.calcularValorTotal(venda.getQuantidade(), produto.getValor());
+        }
+
+        var diasNoPeriodo = ChronoUnit.DAYS.between(dataInicio, dataFim) + 1; // +1 para incluir o último dia
+        var mediaVendas = calculos.calcularMediaVendas((double) valorTotal, (int) diasNoPeriodo);
+
+        // Arredondar os valores para duas casas decimais
+        var valorTotalArredondado = BigDecimal.valueOf(valorTotal).setScale(2, RoundingMode.HALF_UP);
+        var mediaVendasArredondada = BigDecimal.valueOf(mediaVendas).setScale(2, RoundingMode.HALF_UP);
+
+        return vendas.stream()
+                .map(venda -> {
+                    var vendedor = validations.verificarVendedorExistente(venda.getVendedorId());
+                    var produto = validations.verificarProdutoExistente(venda.getProdutoId());
+
+                    return VendaResponseCompleta.convert(
+                            VendaResponse.convert(venda, totalVendas, valorTotalArredondado.doubleValue(), mediaVendasArredondada.doubleValue()),
+                            ProdutoResponse.convert(produto),
+                            VendedorResponse.convert(vendedor)
+                    );
+                }).collect(Collectors.toList());
+    }
 
 
 }

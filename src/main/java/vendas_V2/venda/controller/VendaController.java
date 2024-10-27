@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vendas_V2.venda.dto.VendaRequest;
 import vendas_V2.venda.dto.VendaResponseCompleta;
+import vendas_V2.venda.dto.VendasPorPeriodoRequest;
 import vendas_V2.venda.service.VendaService;
 
 import java.util.List;
@@ -44,6 +45,15 @@ public class VendaController {
         var vendaAtualizada = vendaService.alterarVenda(id, vendaRequest);
 
         return ResponseEntity.ok("Venda atualizada com sucesso!");
+    }
+
+    @GetMapping("periodo")
+    public List<VendaResponseCompleta> buscarVendasPorPeriodo(
+            @RequestParam String dataInicio,
+            @RequestParam String dataFim) {
+
+        var request = new VendasPorPeriodoRequest(dataInicio, dataFim);
+        return vendaService.buscarVendasPorPeriodo(request);
     }
 }
 
