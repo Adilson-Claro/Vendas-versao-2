@@ -16,7 +16,9 @@ import vendas_V2.vendedor.dto.VendedorResponse;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -99,36 +101,55 @@ public class VendaService {
         var dataInicio = request.getDataInicio();
         var dataFim = request.getDataFim();
 
+        // Buscar vendas no período especificado
         var vendas = vendaRepository.findAllByDataCadastroBetween(dataInicio.atStartOfDay(), dataFim.atTime(23, 59, 59));
 
-        var valorTotal = 0;
-        var totalVendas = vendas.size();
+        // Agrupar vendas por vendedor
+        Map<Long, List<Venda>> vendasPorVendedor = vendas.stream()
+                .collect(Collectors.groupingBy(Venda::getVendedorId));
 
-        // Calcular o valor total das vendas
-        for (Venda venda : vendas) {
-            var produto = validations.verificarProdutoExistente(venda.getProdutoId());
-            valorTotal += calculos.calcularValorTotal(venda.getQuantidade(), produto.getValor());
+        List<VendaResponseCompleta> resultado = new ArrayList<>();
+
+        // Processar cada grupo de vendas por vendedor
+        for (Map.Entry<Long, List<Venda>> entry : vendasPorVendedor.entrySet()) {
+            Long vendedorId = entry.getKey();
+            List<Venda> vendasDoVendedor = entry.getValue();
+
+            double valorTotal = 0;
+
+            // Calcular o valor total das vendas para o vendedor
+            for (Venda venda : vendasDoVendedor) {
+                var produto = validations.verificarProdutoExistente(venda.getProdutoId());
+                valorTotal += calculos.calcularValorTotal(venda.getQuantidade(), produto.getValor());
+            }
+
+            // Calcular a média de vendas considerando o número de dias no período
+            long diasNoPeriodo = ChronoUnit.DAYS.between(dataInicio, dataFim) + 1; // +1 para incluir o último dia
+            double mediaVendas = (diasNoPeriodo > 0) ? valorTotal / diasNoPeriodo : 0;
+
+            // Arredondar os valores para duas casas decimais
+            BigDecimal valorTotalArredondado = BigDecimal.valueOf(valorTotal).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal mediaVendasArredondada = BigDecimal.valueOf(mediaVendas).setScale(2, RoundingMode.HALF_UP);
+
+            // Montar a resposta para cada vendedor
+            var vendedor = validations.verificarVendedorExistente(vendedorId);
+
+            for (Venda venda : vendasDoVendedor) {
+                var produto = validations.verificarProdutoExistente(venda.getProdutoId());
+
+                resultado.add(VendaResponseCompleta.convert(
+                        VendaResponse.convert(venda, vendasDoVendedor.size(), valorTotalArredondado.doubleValue(), mediaVendasArredondada.doubleValue()),
+                        ProdutoResponse.convert(produto),
+                        VendedorResponse.convert(vendedor)
+                ));
+            }
         }
 
-        var diasNoPeriodo = ChronoUnit.DAYS.between(dataInicio, dataFim) + 1; // +1 para incluir o último dia
-        var mediaVendas = calculos.calcularMediaVendas((double) valorTotal, (int) diasNoPeriodo);
-
-        // Arredondar os valores para duas casas decimais
-        var valorTotalArredondado = BigDecimal.valueOf(valorTotal).setScale(2, RoundingMode.HALF_UP);
-        var mediaVendasArredondada = BigDecimal.valueOf(mediaVendas).setScale(2, RoundingMode.HALF_UP);
-
-        return vendas.stream()
-                .map(venda -> {
-                    var vendedor = validations.verificarVendedorExistente(venda.getVendedorId());
-                    var produto = validations.verificarProdutoExistente(venda.getProdutoId());
-
-                    return VendaResponseCompleta.convert(
-                            VendaResponse.convert(venda, totalVendas, valorTotalArredondado.doubleValue(), mediaVendasArredondada.doubleValue()),
-                            ProdutoResponse.convert(produto),
-                            VendedorResponse.convert(vendedor)
-                    );
-                }).collect(Collectors.toList());
+        return resultado;
     }
+
+
+
 
 
 }
