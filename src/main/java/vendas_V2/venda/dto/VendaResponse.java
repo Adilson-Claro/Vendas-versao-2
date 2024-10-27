@@ -2,18 +2,18 @@ package vendas_V2.venda.dto;
 
 import vendas_V2.venda.model.Venda;
 
-import java.math.BigDecimal;
-
 public record VendaResponse(Long id,
                             Integer quantidade,
-                            BigDecimal totalVendas
-) {
+                            Integer totalVendas,
+                            Double valorTotal) {
 
-    public static VendaResponse convert(Venda venda) {
+    public static VendaResponse convert(Venda venda, Integer totalVendas, Double valorTotal) {
         return new VendaResponse(
                 venda.getId(),
                 venda.getQuantidade(),
-                venda.getTotalVendas()
+                totalVendas,
+                valorTotal
         );
     }
 }
+

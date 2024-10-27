@@ -21,12 +21,6 @@ public class VendaController {
     @PostMapping
     public ResponseEntity<VendaRequest> criarVenda(@RequestBody @Valid VendaRequest request) {
         vendaService.salvarVenda(request);
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
-    }
-
-    @PostMapping("aprovada")
-    public ResponseEntity<VendaRequest> aprovarVenda(@RequestBody @Valid VendaRequest request) {
-        vendaService.salvarVenda(request);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 

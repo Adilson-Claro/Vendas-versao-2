@@ -10,6 +10,8 @@ import vendas_V2.venda.repository.VendaRepository;
 import vendas_V2.vendedor.model.Vendedor;
 import vendas_V2.vendedor.repository.VendedorRepository;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class Validations {
@@ -31,6 +33,12 @@ public class Validations {
     public Venda verificarVendaExistente(Long id) {
         return vendaRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Venda não encontrada"));
+    }
+
+    public void verificarVendasExistentes(List<Venda> vendas) {
+        if (vendas.isEmpty()) {
+            throw new NotFoundException("Nenhuma venda encontrada");
+        }
     }
 
 }

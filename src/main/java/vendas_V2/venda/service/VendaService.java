@@ -13,6 +13,7 @@ import vendas_V2.vendedor.dto.VendedorResponse;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,32 +24,35 @@ public class VendaService {
     private final Validations validations;
 
     public void salvarVenda(VendaRequest request) {
-
         var produto = validations.verificarProdutoExistente(request.produtoId());
-
         var vendedor = validations.verificarVendedorExistente(request.vendedorId());
 
-        var totalVenda = calculos.calcularTotalVenda(produto.getValor(), request.quantidade());
-
-        var venda = calculos.construirVenda(vendedor.getId(), produto.getId(), request.quantidade(), totalVenda);
-
+        var venda = calculos.construirVenda(vendedor.getId(), produto.getId(), request.quantidade());
         vendaRepository.save(venda);
     }
 
-    public List<VendaResponseCompleta> buscarVendas(Long id) {
+
+    public List<VendaResponseCompleta> buscarVendas() {
         var vendas = vendaRepository.findAll();
 
-        return vendas
-                .stream()
+        return vendas.stream()
                 .map(venda -> {
                     var vendedor = validations.verificarVendedorExistente(venda.getVendedorId());
                     var produto = validations.verificarProdutoExistente(venda.getProdutoId());
-                    var venda = validations.verificarVendaExistente(id);
+                    var existVenda = validations.verificarVendaExistente(venda.getId());
 
-                    return VendaResponseCompleta.convert(VendaResponse.convert(venda),
+                    var totalVendas = calcularTotalVendasPorVendedor(vendedor.getId());
+
+                    double valorTotal = BigDecimal.valueOf(venda.getQuantidade())
+                            .multiply(produto.getValor())
+                            .doubleValue();
+
+                    return VendaResponseCompleta.convert(
+                            VendaResponse.convert(existVenda, totalVendas, valorTotal),
                             ProdutoResponse.convert(produto),
-                            VendedorResponse.convert(vendedor));
-                }).toList();
+                            VendedorResponse.convert(vendedor)
+                    );
+                }).collect(Collectors.toList());
     }
 
     public void cancelarVenda(Long id) {
@@ -59,32 +63,30 @@ public class VendaService {
     }
 
     public VendaResponseCompleta alterarVenda(Long id, VendaRequest vendaRequest) {
-        // Busca a venda pelo ID
         var vendaExistente = validations.verificarVendaExistente(id);
+        var vendedor = validations.verificarVendedorExistente(vendaExistente.getVendedorId());
+        var produto = validations.verificarProdutoExistente(vendaExistente.getProdutoId());
 
-        // Busca o vendedor e o produto pelos IDs informados no request
-        var vendedor = validations.verificarVendedorExistente(id);
-
-        var produto = validations.verificarProdutoExistente(id);
-
-        // Atualiza os campos da venda
-        vendaExistente.setVendedorId(vendedor.getId());
-        vendaExistente.setProdutoId(produto.getId());
         vendaExistente.setQuantidade(vendaRequest.quantidade());
 
-        // Calcula o total de vendas com base no preço do produto e na quantidade
-        var totalVendas = produto.getValor().multiply(new BigDecimal(vendaRequest.quantidade()));
-        vendaExistente.setTotalVendas(totalVendas);
-
-        // Salva as alterações
         var vendaAtualizada = vendaRepository.save(vendaExistente);
 
-        // Retorna a resposta completa usando VendaResponseCompleta
+        var totalVendas = calcularTotalVendasPorVendedor(vendedor.getId());
+
+        double valorTotal = BigDecimal.valueOf(vendaAtualizada.getQuantidade())
+                .multiply(produto.getValor())
+                .doubleValue();
+
         return VendaResponseCompleta.convert(
-                VendaResponse.convert(vendaAtualizada),
+                VendaResponse.convert(vendaAtualizada, totalVendas, valorTotal),
                 ProdutoResponse.convert(produto),
                 VendedorResponse.convert(vendedor)
         );
+    }
+
+    private Integer calcularTotalVendasPorVendedor(Long vendedorId) {
+        var vendasDoVendedor = vendaRepository.findByVendedorId(vendedorId);
+        return vendasDoVendedor.size();
     }
 }
 
