@@ -8,6 +8,7 @@ import vendas_V2.produto.dto.ProdutoRequest;
 import vendas_V2.produto.dto.ProdutoResponse;
 import vendas_V2.produto.service.ProdutoService;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -18,9 +19,9 @@ public class ProdutoController {
     private final ProdutoService produtoService;
 
     @PostMapping
-    public ResponseEntity<String> salvarProduto(@RequestBody @Valid ProdutoRequest request) {
-        var produtoCriado = ProdutoResponse.convert(produtoService.salvarProduto(request));
-        return ResponseEntity.ok("Produto cadastrado com sucesso!");
+    public ResponseEntity<String> cadastrarProdutos(@RequestBody @Valid List<ProdutoRequest> request) {
+        produtoService.salvarListaProdutos(request);
+        return ResponseEntity.ok("Produtos cadastrados com sucesso!");
     }
 
     @RequestMapping

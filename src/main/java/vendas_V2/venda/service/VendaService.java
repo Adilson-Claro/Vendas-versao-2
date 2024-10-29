@@ -90,7 +90,7 @@ public class VendaService {
         // Calcula o total de vendas do vendedor
         var totalVendas = calculos.calcularTotalVendasPorVendedor(vendedor.getId());
 
-        // Calcula o valor total da venda
+        // Calcula o valorUnitario total da venda
         var valorTotal = calculos.calcularValorTotal(vendaAtualizada.getQuantidade(), produto.getValor());
 
         // Utiliza o método calcularMediaVendas para obter a média

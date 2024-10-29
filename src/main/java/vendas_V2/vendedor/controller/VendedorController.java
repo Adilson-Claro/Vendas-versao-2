@@ -18,10 +18,9 @@ public class VendedorController {
     private final VendedorService vendedorService;
 
     @PostMapping
-    public ResponseEntity<String> salvarVendedor(@RequestBody @Valid VendedorRequest request) {
-        var vendedorCriado = VendedorResponse.convert(vendedorService.salvarVendedor(request));
-
-        return ResponseEntity.ok("Vendedor cadastrado com sucesso!");
+    public ResponseEntity<String> cadastrarVendedores(@RequestBody @Valid List<VendedorRequest> request) {
+        vendedorService.salvarListaVendedores(request);
+        return ResponseEntity.ok("Vendedores cadastrados com sucesso!");
     }
 
     @GetMapping

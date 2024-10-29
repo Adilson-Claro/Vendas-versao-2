@@ -6,11 +6,13 @@ import java.math.BigDecimal;
 
 public record ProdutoResponse(Long id,
                               String nome,
-                              BigDecimal valor) {
+                              BigDecimal valorUnitario,
+                              Integer quantidade) {
 
     public static ProdutoResponse convert(Produto produto) {
         return new ProdutoResponse(produto.getId(),
                 produto.getNome(),
-                produto.getValor());
+                produto.getValor(),
+                produto.getQuantidade());
     }
 }

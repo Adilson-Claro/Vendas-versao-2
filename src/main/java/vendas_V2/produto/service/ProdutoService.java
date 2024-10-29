@@ -11,6 +11,7 @@ import vendas_V2.produto.repository.ProdutoRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,17 +20,16 @@ public class ProdutoService {
     private final ProdutoRepository produtoRepository;
     private final Validations validations;
 
-    public Produto salvarProduto(ProdutoRequest request) {
-
-        var produto = construirProduto(request.nome(), request.valor());
-
-        produtoRepository.save(produto);
-        return produto;
+    public List<Produto> salvarListaProdutos(List<ProdutoRequest> request) {
+        var listaProdutos = request.stream()
+                .map(produtoRequest -> new Produto(null, produtoRequest.nome(), produtoRequest.valor(), produtoRequest.quantidade()))
+                .collect(Collectors.toList());
+        return produtoRepository.saveAll(listaProdutos);
     }
 
-    private Produto construirProduto(String nome, BigDecimal valor) {
+    private Produto construirProduto(String nome, BigDecimal valor, Integer quantidade) {
 
-        return Produto.convert(null, nome, valor);
+        return Produto.convert(null, nome, valor, quantidade);
     }
 
     public List<ProdutoResponse> buscarProduto() {
@@ -50,7 +50,7 @@ public class ProdutoService {
         var localizarProduto = produtoRepository.findById(request.id());
 
         if (produtoRepository.existsById(request.id())) {
-            var alterarProduto = construirProduto(request.nome(), request.valor());
+            var alterarProduto = construirProduto(request.nome(), request.valor(), request.quantidade());
 
             produtoRepository.save(alterarProduto);
             return alterarProduto;

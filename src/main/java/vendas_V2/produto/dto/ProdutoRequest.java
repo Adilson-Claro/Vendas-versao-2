@@ -7,5 +7,6 @@ import java.math.BigDecimal;
 
 public record ProdutoRequest(Long id,
                              @NotBlank String nome,
-                             @NotNull BigDecimal valor) {
+                             @NotNull BigDecimal valor,
+                             @NotNull Integer quantidade) {
 }

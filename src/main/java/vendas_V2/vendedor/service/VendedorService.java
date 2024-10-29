@@ -10,6 +10,7 @@ import vendas_V2.vendedor.model.Vendedor;
 import vendas_V2.vendedor.repository.VendedorRepository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -18,12 +19,11 @@ public class VendedorService {
     private final VendedorRepository vendedorRepository;
     private final Validations validations;
 
-    public Vendedor salvarVendedor(VendedorRequest request) {
-
-        var vendedor = construirVendedor(request.nome(), request.cpf());
-
-        vendedorRepository.save(vendedor);
-        return vendedor;
+    public List<Vendedor> salvarListaVendedores(List<VendedorRequest> vendedor) {
+        var listaVendedores = vendedor.stream()
+                .map(vendedorRequest -> new Vendedor(null, vendedorRequest.nome(), vendedorRequest.cpf()))
+                .collect(Collectors.toList());
+        return vendedorRepository.saveAll(listaVendedores);
     }
 
     private Vendedor construirVendedor(String nome, String cpf) {

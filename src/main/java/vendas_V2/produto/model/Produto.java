@@ -23,11 +23,15 @@ public class Produto {
     @Column(nullable = false)
     private BigDecimal valor;
 
-    public static Produto convert(Long id, String nome, BigDecimal valor) {
+    @Column(nullable = false)
+    private Integer quantidade;
+
+    public static Produto convert(Long id, String nome, BigDecimal valor, Integer quantidade) {
         var produto = new Produto();
         produto.setId(id);
         produto.setNome(nome);
         produto.setValor(valor);
+        produto.setQuantidade(quantidade);
         return produto;
     }
 }
