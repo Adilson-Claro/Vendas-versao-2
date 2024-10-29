@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import vendas_V2.venda.dto.VendaRequest;
 import vendas_V2.venda.dto.VendaResponseCompleta;
 import vendas_V2.venda.dto.VendasPorPeriodoRequest;
+import vendas_V2.venda.model.Venda;
+import vendas_V2.venda.repository.VendaRepository;
 import vendas_V2.venda.service.VendaService;
 
 import java.util.List;
@@ -18,6 +20,7 @@ import java.util.List;
 public class VendaController {
 
     private final VendaService vendaService;
+    private final VendaRepository vendaRepository;
 
     @PostMapping
     public ResponseEntity<VendaRequest> criarVenda(@RequestBody @Valid VendaRequest request) {
@@ -25,16 +28,22 @@ public class VendaController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    @PutMapping("aprovar/{id}")
+    public ResponseEntity<Venda> aprovarVenda(@PathVariable Long id) {
+        Venda venda = vendaService.aprovarVenda(id);
+        return ResponseEntity.ok(venda);
+    }
+
+    @PutMapping("cancelar/{id}")
+    public ResponseEntity<Venda> cancelarVenda(@PathVariable Long id) {
+        Venda venda = vendaService.cancelarVenda(id);
+        return ResponseEntity.ok(venda);
+    }
+
     @GetMapping
     public ResponseEntity<List<VendaResponseCompleta>> buscarVenda() {
         var vendas = vendaService.buscarVendas();
         return ResponseEntity.ok(vendas);
-    }
-
-    @DeleteMapping("{id}")
-    public ResponseEntity<Void> cancelarVenda(@PathVariable Long id) {
-        vendaService.cancelarVenda(id);
-        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("{id}")

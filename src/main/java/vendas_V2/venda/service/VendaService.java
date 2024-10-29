@@ -37,6 +37,21 @@ public class VendaService {
         vendaRepository.save(venda);
     }
 
+    public Venda buscarVendaPorId(Long vendaId) {
+        return validations.buscarVendaPorId(vendaId);
+    }
+
+    public Venda aprovarVenda(Long vendaId) {
+        Venda venda = buscarVendaPorId(vendaId);
+        venda.setStatus(Venda.statusVenda.APROVADO);
+        return vendaRepository.save(venda);
+    }
+
+    public Venda cancelarVenda(Long vendaId) {
+        Venda venda = buscarVendaPorId(vendaId);
+        venda.setStatus(Venda.statusVenda.CANCELADO);
+        return vendaRepository.save(venda);
+    }
 
     public List<VendaResponseCompleta> buscarVendas() {
         var vendas = vendaRepository.findAll();
@@ -54,19 +69,11 @@ public class VendaService {
                     var mediaVendas = calculos.calcularMediaVendas(valorTotal, totalVendas);
 
                     return VendaResponseCompleta.convert(
-                            VendaResponse.convert(existVenda, totalVendas, valorTotal, mediaVendas), // Passa valor total e média
+                            VendaResponse.convert(existVenda, totalVendas, valorTotal, mediaVendas),
                             ProdutoResponse.convert(produto),
                             VendedorResponse.convert(vendedor)
                     );
                 }).collect(Collectors.toList());
-    }
-
-
-    public void cancelarVenda(Long id) {
-
-        var venda = validations.verificarVendaExistente(id);
-
-        vendaRepository.deleteById(id);
     }
 
     public VendaResponseCompleta alterarVenda(Long id, VendaRequest vendaRequest) {
@@ -115,7 +122,7 @@ public class VendaService {
             Long vendedorId = entry.getKey();
             List<Venda> vendasDoVendedor = entry.getValue();
 
-            double valorTotal = 0;
+            var valorTotal = 0;
 
             // Calcular o valor total das vendas para o vendedor
             for (Venda venda : vendasDoVendedor) {
@@ -124,17 +131,17 @@ public class VendaService {
             }
 
             // Calcular a média de vendas considerando o número de dias no período
-            long diasNoPeriodo = ChronoUnit.DAYS.between(dataInicio, dataFim) + 1; // +1 para incluir o último dia
-            double mediaVendas = (diasNoPeriodo > 0) ? valorTotal / diasNoPeriodo : 0;
+            var diasNoPeriodo = ChronoUnit.DAYS.between(dataInicio, dataFim) + 1; // +1 para incluir o último dia
+            var mediaVendas = (diasNoPeriodo > 0) ? valorTotal / diasNoPeriodo : 0;
 
             // Arredondar os valores para duas casas decimais
-            BigDecimal valorTotalArredondado = BigDecimal.valueOf(valorTotal).setScale(2, RoundingMode.HALF_UP);
-            BigDecimal mediaVendasArredondada = BigDecimal.valueOf(mediaVendas).setScale(2, RoundingMode.HALF_UP);
+            var valorTotalArredondado = BigDecimal.valueOf(valorTotal).setScale(2, RoundingMode.HALF_UP);
+            var mediaVendasArredondada = BigDecimal.valueOf(mediaVendas).setScale(2, RoundingMode.HALF_UP);
 
             // Montar a resposta para cada vendedor
             var vendedor = validations.verificarVendedorExistente(vendedorId);
 
-            for (Venda venda : vendasDoVendedor) {
+            for (var venda : vendasDoVendedor) {
                 var produto = validations.verificarProdutoExistente(venda.getProdutoId());
 
                 resultado.add(VendaResponseCompleta.convert(
@@ -147,10 +154,5 @@ public class VendaService {
 
         return resultado;
     }
-
-
-
-
-
 }
 

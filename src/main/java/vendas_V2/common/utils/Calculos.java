@@ -6,8 +6,6 @@ import vendas_V2.venda.model.Venda;
 import vendas_V2.venda.repository.VendaRepository;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 
 @Component
 @RequiredArgsConstructor
@@ -35,15 +33,5 @@ public class Calculos {
             return 0.0;
         }
         return valorTotal / totalVendas;
-    }
-
-    public Double calcularMediaVendasPorPeriodo(Double valorTotal, Integer totalVendas, LocalDate dataInicio, LocalDate dataFim) {
-        var dias = ChronoUnit.DAYS.between(dataInicio, dataFim) + 1; // +1 para incluir o dia de início
-
-        if (dias <= 0 || totalVendas == 0) {
-            return 0.0;
-        }
-
-        return valorTotal / dias;
     }
 }

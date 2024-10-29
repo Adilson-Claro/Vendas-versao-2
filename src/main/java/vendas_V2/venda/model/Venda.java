@@ -31,14 +31,23 @@ public class Venda {
     @Column(nullable = false)
     private LocalDateTime dataCadastro;
 
+    @Enumerated(EnumType.STRING)
+    private statusVenda status = statusVenda.ANDAMENTO;
+
     public static Venda convert(Long vendedorId, Long produtoId, Integer quantidade) {
         var venda = new Venda();
         venda.setVendedorId(vendedorId);
         venda.setProdutoId(produtoId);
         venda.setQuantidade(quantidade);
+        venda.setStatus(statusVenda.ANDAMENTO);
         venda.setDataCadastro(LocalDateTime.now());
         return venda;
     }
 
+    public enum statusVenda {
+        APROVADO,
+        CANCELADO,
+        ANDAMENTO
+    }
 }
 

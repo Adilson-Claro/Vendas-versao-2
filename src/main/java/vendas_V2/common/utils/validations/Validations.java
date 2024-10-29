@@ -35,10 +35,8 @@ public class Validations {
                 .orElseThrow(() -> new NotFoundException("Venda não encontrada"));
     }
 
-    public void verificarVendasExistentes(List<Venda> vendas) {
-        if (vendas.isEmpty()) {
-            throw new NotFoundException("Nenhuma venda encontrada");
-        }
+    public Venda buscarVendaPorId(Long vendaId) {
+        return vendaRepository.findById(vendaId)
+                .orElseThrow(() -> new NotFoundException("Venda não encontrada para o ID: " + vendaId));
     }
-
 }
