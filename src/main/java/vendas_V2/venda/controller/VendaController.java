@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import vendas_V2.common.utils.NotFoundException;
 import vendas_V2.venda.dto.VendaRequest;
 import vendas_V2.venda.dto.VendaResponseCompleta;
 import vendas_V2.venda.dto.VendasPorPeriodoRequest;
@@ -35,9 +36,15 @@ public class VendaController {
     }
 
     @PutMapping("cancelar/{id}")
-    public ResponseEntity<Venda> cancelarVenda(@PathVariable Long id) {
-        Venda venda = vendaService.cancelarVenda(id);
-        return ResponseEntity.ok(venda);
+    public ResponseEntity<String> cancelarVenda(@PathVariable Long id) {
+        try {
+            vendaService.cancelarVenda(id);
+            return ResponseEntity.ok("Venda cancelada com sucesso!");
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Venda não encontrada.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao cancelar a venda.");
+        }
     }
 
     @GetMapping

@@ -3,8 +3,10 @@ package vendas_V2.venda.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import vendas_V2.common.utils.Calculos;
+import vendas_V2.common.utils.NotFoundException;
 import vendas_V2.common.utils.validations.Validations;
 import vendas_V2.produto.dto.ProdutoResponse;
+import vendas_V2.produto.repository.ProdutoRepository;
 import vendas_V2.venda.dto.VendaRequest;
 import vendas_V2.venda.dto.VendaResponse;
 import vendas_V2.venda.dto.VendaResponseCompleta;
@@ -28,13 +30,21 @@ public class VendaService {
     private final VendaRepository vendaRepository;
     private final Calculos calculos;
     private final Validations validations;
+    private final ProdutoRepository produtoRepository;
 
     public void salvarVenda(VendaRequest request) {
         var produto = validations.verificarProdutoExistente(request.produtoId());
         var vendedor = validations.verificarVendedorExistente(request.vendedorId());
 
+        // Verifica se há quantidade suficiente em estoque
+        if (produto.getQuantidade() < request.quantidade()) {
+            throw new NotFoundException("Quantidade em estoque insuficiente.");
+        }
+
+        // Cria a venda com status "andamento"
         var venda = calculos.construirVenda(vendedor.getId(), produto.getId(), request.quantidade());
-        vendaRepository.save(venda);
+        venda.setStatus(Venda.statusVenda.ANDAMENTO); // Define o status como "andamento"
+        vendaRepository.save(venda); // Salva a venda
     }
 
     public Venda buscarVendaPorId(Long vendaId) {
@@ -43,14 +53,40 @@ public class VendaService {
 
     public Venda aprovarVenda(Long vendaId) {
         Venda venda = buscarVendaPorId(vendaId);
+
+        // Verifica se a venda já foi aprovada
+        if (venda.getStatus() == Venda.statusVenda.APROVADO) {
+            throw new RuntimeException("Venda já está aprovada.");
+        }
+
+        // Remove a quantidade do produto do estoque
+        var produto = validations.verificarProdutoExistente(venda.getProdutoId());
+        produto.setQuantidade(produto.getQuantidade() - venda.getQuantidade());
+        produtoRepository.save(produto); // Atualiza o estoque
+
+        // Atualiza o status da venda para "aprovado"
         venda.setStatus(Venda.statusVenda.APROVADO);
-        return vendaRepository.save(venda);
+        return vendaRepository.save(venda); // Salva a venda aprovada
     }
 
-    public Venda cancelarVenda(Long vendaId) {
-        Venda venda = buscarVendaPorId(vendaId);
-        venda.setStatus(Venda.statusVenda.CANCELADO);
-        return vendaRepository.save(venda);
+    public void cancelarVenda(Long vendaId) {
+        var optionalVenda = vendaRepository.findById(vendaId);
+        if (optionalVenda.isPresent()) {
+            var venda = optionalVenda.get();
+            var produto = validations.verificarProdutoExistente(venda.getProdutoId());
+
+            // Se a venda estava aprovada, retorna a quantidade ao estoque
+            if (venda.getStatus() == Venda.statusVenda.APROVADO) {
+                produto.setQuantidade(produto.getQuantidade() + venda.getQuantidade());
+                produtoRepository.save(produto); // Atualiza o estoque
+            }
+
+            // Remove a venda (ou marca como cancelada)
+            venda.setStatus(Venda.statusVenda.CANCELADO); // Marcar como cancelada ao invés de excluir
+            vendaRepository.save(venda); // Salva a venda cancelada
+        } else {
+            throw new RuntimeException("Venda não encontrada.");
+        }
     }
 
     public List<VendaResponseCompleta> buscarVendas() {

@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 public record ProdutoResponse(Long id,
                               String nome,
                               BigDecimal valorUnitario,
-                              Integer quantidade) {
+                              Integer quantidadeEstoque) {
 
     public static ProdutoResponse convert(Produto produto) {
         return new ProdutoResponse(produto.getId(),
