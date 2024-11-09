@@ -36,15 +36,13 @@ public class VendaService {
         var produto = validations.verificarProdutoExistente(request.produtoId());
         var vendedor = validations.verificarVendedorExistente(request.vendedorId());
 
-        // Verifica se há quantidade suficiente em estoque
         if (produto.getQuantidade() < request.quantidade()) {
             throw new NotFoundException("Quantidade em estoque insuficiente.");
         }
 
-        // Cria a venda com status "andamento"
         var venda = calculos.construirVenda(vendedor.getId(), produto.getId(), request.quantidade());
-        venda.setStatus(Venda.statusVenda.ANDAMENTO); // Define o status como "andamento"
-        vendaRepository.save(venda); // Salva a venda
+        venda.setStatus(Venda.statusVenda.ANDAMENTO);
+        vendaRepository.save(venda);
     }
 
     public Venda buscarVendaPorId(Long vendaId) {
@@ -54,19 +52,16 @@ public class VendaService {
     public Venda aprovarVenda(Long vendaId) {
         Venda venda = buscarVendaPorId(vendaId);
 
-        // Verifica se a venda já foi aprovada
         if (venda.getStatus() == Venda.statusVenda.APROVADO) {
             throw new RuntimeException("Venda já está aprovada.");
         }
 
-        // Remove a quantidade do produto do estoque
         var produto = validations.verificarProdutoExistente(venda.getProdutoId());
         produto.setQuantidade(produto.getQuantidade() - venda.getQuantidade());
-        produtoRepository.save(produto); // Atualiza o estoque
+        produtoRepository.save(produto);
 
-        // Atualiza o status da venda para "aprovado"
         venda.setStatus(Venda.statusVenda.APROVADO);
-        return vendaRepository.save(venda); // Salva a venda aprovada
+        return vendaRepository.save(venda);
     }
 
     public void cancelarVenda(Long vendaId) {
@@ -75,15 +70,13 @@ public class VendaService {
             var venda = optionalVenda.get();
             var produto = validations.verificarProdutoExistente(venda.getProdutoId());
 
-            // Se a venda estava aprovada, retorna a quantidade ao estoque
             if (venda.getStatus() == Venda.statusVenda.APROVADO) {
                 produto.setQuantidade(produto.getQuantidade() + venda.getQuantidade());
-                produtoRepository.save(produto); // Atualiza o estoque
+                produtoRepository.save(produto);
             }
 
-            // Remove a venda (ou marca como cancelada)
-            venda.setStatus(Venda.statusVenda.CANCELADO); // Marcar como cancelada ao invés de excluir
-            vendaRepository.save(venda); // Salva a venda cancelada
+            venda.setStatus(Venda.statusVenda.CANCELADO);
+            vendaRepository.save(venda);
         } else {
             throw new RuntimeException("Venda não encontrada.");
         }
@@ -117,24 +110,18 @@ public class VendaService {
         var vendedor = validations.verificarVendedorExistente(vendaExistente.getVendedorId());
         var produto = validations.verificarProdutoExistente(vendaExistente.getProdutoId());
 
-        // Atualiza a quantidade da venda existente
         vendaExistente.setQuantidade(vendaRequest.quantidade());
 
-        // Salva a venda atualizada
         var vendaAtualizada = vendaRepository.save(vendaExistente);
 
-        // Calcula o total de vendas do vendedor
         var totalVendas = calculos.calcularTotalVendasPorVendedor(vendedor.getId());
 
-        // Calcula o valorUnitario total da venda
         var valorTotal = calculos.calcularValorTotal(vendaAtualizada.getQuantidade(), produto.getValor());
 
-        // Utiliza o método calcularMediaVendas para obter a média
         var mediaVendas = calculos.calcularMediaVendas(valorTotal, totalVendas);
 
-        // Retorna a resposta completa com valor total e média
         return VendaResponseCompleta.convert(
-                VendaResponse.convert(vendaAtualizada, totalVendas, valorTotal, mediaVendas), // Passa valor total e média
+                VendaResponse.convert(vendaAtualizada, totalVendas, valorTotal, mediaVendas),
                 ProdutoResponse.convert(produto),
                 VendedorResponse.convert(vendedor)
         );
@@ -144,37 +131,31 @@ public class VendaService {
         var dataInicio = request.getDataInicio();
         var dataFim = request.getDataFim();
 
-        // Buscar vendas no período especificado
         var vendas = vendaRepository.findAllByDataCadastroBetween(dataInicio.atStartOfDay(), dataFim.atTime(23, 59, 59));
 
-        // Agrupar vendas por vendedor
         Map<Long, List<Venda>> vendasPorVendedor = vendas.stream()
                 .collect(Collectors.groupingBy(Venda::getVendedorId));
 
         List<VendaResponseCompleta> resultado = new ArrayList<>();
 
-        // Processar cada grupo de vendas por vendedor
+        // Processar cada grupo de vendas por vendedor, manipula mapa
         for (Map.Entry<Long, List<Venda>> entry : vendasPorVendedor.entrySet()) {
-            Long vendedorId = entry.getKey();
-            List<Venda> vendasDoVendedor = entry.getValue();
+            var vendedorId = entry.getKey();
+            var vendasDoVendedor = entry.getValue();
 
             var valorTotal = 0;
 
-            // Calcular o valor total das vendas para o vendedor
             for (Venda venda : vendasDoVendedor) {
                 var produto = validations.verificarProdutoExistente(venda.getProdutoId());
                 valorTotal += calculos.calcularValorTotal(venda.getQuantidade(), produto.getValor());
             }
 
-            // Calcular a média de vendas considerando o número de dias no período
-            var diasNoPeriodo = ChronoUnit.DAYS.between(dataInicio, dataFim) + 1; // +1 para incluir o último dia
+            var diasNoPeriodo = ChronoUnit.DAYS.between(dataInicio, dataFim) + 1;
             var mediaVendas = (diasNoPeriodo > 0) ? valorTotal / diasNoPeriodo : 0;
 
-            // Arredondar os valores para duas casas decimais
             var valorTotalArredondado = BigDecimal.valueOf(valorTotal).setScale(2, RoundingMode.HALF_UP);
             var mediaVendasArredondada = BigDecimal.valueOf(mediaVendas).setScale(2, RoundingMode.HALF_UP);
 
-            // Montar a resposta para cada vendedor
             var vendedor = validations.verificarVendedorExistente(vendedorId);
 
             for (var venda : vendasDoVendedor) {
