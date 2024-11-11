@@ -21,7 +21,7 @@ public class VendedorService {
 
     public List<Vendedor> salvarListaVendedores(List<VendedorRequest> vendedor) {
         var listaVendedores = vendedor.stream()
-                .map(vendedorRequest -> new Vendedor(null, vendedorRequest.nome(), vendedorRequest.cpf()))
+                .map(vendedorRequest -> new Vendedor(null, vendedorRequest.nome(), vendedorRequest.cpf(), Vendedor.statusVendedor.ATIVO))
                 .collect(Collectors.toList());
         return vendedorRepository.saveAll(listaVendedores);
     }
@@ -44,13 +44,16 @@ public class VendedorService {
     }
     public void deletarVendedor(Long id) {
 
+        var vendedorStatus = validations.verficarStatusVendedor(id);
         var vendedor = validations.verificarVendedorExistente(id);
 
-        vendedorRepository.deleteById(id);
+            vendedor.setStatus(Vendedor.statusVendedor.INATIVO);
+            vendedorRepository.save(vendedor);
     }
 
     public VendedorResponse atualizarVendedor(Long id, VendedorRequest request) {
 
+        var vendedorStatus = validations.verficarStatusVendedor(id);
         var existVendedor = validations.verificarVendedorExistente(id);
 
         existVendedor.setNome(request.nome());

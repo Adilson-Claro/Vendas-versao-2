@@ -35,6 +35,7 @@ public class VendaService {
     public void salvarVenda(VendaRequest request) {
         var produto = validations.verificarProdutoExistente(request.produtoId());
         var vendedor = validations.verificarVendedorExistente(request.vendedorId());
+        var vendedorStatus = validations.verficarStatusVendedor(request.vendedorId());
 
         if (produto.getQuantidade() < request.quantidade()) {
             throw new NotFoundException("Quantidade em estoque insuficiente.");

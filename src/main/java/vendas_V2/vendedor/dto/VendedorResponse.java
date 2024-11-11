@@ -4,11 +4,13 @@ import vendas_V2.vendedor.model.Vendedor;
 
 public record VendedorResponse(Long id,
                                String nome,
-                               String cpf) {
+                               String cpf,
+                               Vendedor.statusVendedor status) {
 
     public static VendedorResponse convert(Vendedor vendedor) {
         return new VendedorResponse(vendedor.getId(),
                 vendedor.getNome(),
-                vendedor.getCpf());
+                vendedor.getCpf(),
+                vendedor.getStatus());
     }
 }

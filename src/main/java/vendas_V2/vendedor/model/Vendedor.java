@@ -22,12 +22,21 @@ public class Vendedor {
 
     @Column(nullable = false)
     private String cpf;
+    
+    @Enumerated(EnumType.STRING)
+    private statusVendedor status = statusVendedor.ATIVO;
 
     public static Vendedor convert(Long id, String nome, String cpf) {
         var vendedor = new Vendedor();
         vendedor.setId(id);
         vendedor.setNome(nome);
         vendedor.setCpf(cpf);
+        vendedor.setStatus(statusVendedor.ATIVO);
         return vendedor;
+    }
+    
+    public enum statusVendedor{
+        ATIVO,
+        INATIVO
     }
 }
