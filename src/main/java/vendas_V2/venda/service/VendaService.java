@@ -3,7 +3,6 @@ package vendas_V2.venda.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import vendas_V2.common.utils.Calculos;
-import vendas_V2.common.utils.NotFoundException;
 import vendas_V2.common.utils.validations.Validations;
 import vendas_V2.produto.dto.ProdutoResponse;
 import vendas_V2.produto.repository.ProdutoRepository;
@@ -36,10 +35,7 @@ public class VendaService {
         var produto = validations.verificarProdutoExistente(request.produtoId());
         var vendedor = validations.verificarVendedorExistente(request.vendedorId());
         var vendedorStatus = validations.verficarStatusVendedor(request.vendedorId());
-
-        if (produto.getQuantidade() < request.quantidade()) {
-            throw new NotFoundException("Quantidade em estoque insuficiente.");
-        }
+        validations.verificarQuantidadeEstoque(produto, request.quantidade());
 
         var venda = calculos.construirVenda(vendedor.getId(), produto.getId(), request.quantidade());
         venda.setStatus(Venda.statusVenda.ANDAMENTO);
@@ -53,9 +49,7 @@ public class VendaService {
     public Venda aprovarVenda(Long vendaId) {
         Venda venda = buscarVendaPorId(vendaId);
 
-        if (venda.getStatus() == Venda.statusVenda.APROVADO) {
-            throw new RuntimeException("Venda já está aprovada.");
-        }
+        var statusVenda = validations.vendaStatus(vendaId);
 
         var produto = validations.verificarProdutoExistente(venda.getProdutoId());
         produto.setQuantidade(produto.getQuantidade() - venda.getQuantidade());
@@ -79,7 +73,7 @@ public class VendaService {
             venda.setStatus(Venda.statusVenda.CANCELADO);
             vendaRepository.save(venda);
         } else {
-            throw new RuntimeException("Venda não encontrada.");
+            var procurarVenda = validations.verificarVendaExistente(vendaId);
         }
     }
 

@@ -10,8 +10,6 @@ import vendas_V2.venda.repository.VendaRepository;
 import vendas_V2.vendedor.model.Vendedor;
 import vendas_V2.vendedor.repository.VendedorRepository;
 
-import java.util.List;
-
 @Component
 @RequiredArgsConstructor
 public class Validations {
@@ -45,4 +43,17 @@ public class Validations {
                 .filter(vendedor -> vendedor.getStatus() != Vendedor.statusVendedor.INATIVO)
                 .orElseThrow(() -> new NotFoundException("Vendedor INATIVO"));
     }
+
+    public Venda vendaStatus(Long vendaId) {
+        return vendaRepository.findById(vendaId)
+                .filter(venda -> venda.getStatus() == Venda.statusVenda.APROVADO)
+                .orElseThrow(() -> new NotFoundException("Venda já aprovada"));
+    }
+
+    public void verificarQuantidadeEstoque(Produto produto, int quantidadeRequisitada) {
+        if (produto.getQuantidade() < quantidadeRequisitada) {
+            throw new NotFoundException("Quantidade em estoque insuficiente.");
+        }
+    }
 }
+

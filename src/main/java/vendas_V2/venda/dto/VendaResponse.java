@@ -6,7 +6,9 @@ public record VendaResponse(Long id,
                             Integer quantidade,
                             Integer totalVendas,
                             Double valorTotal,
-                            Double mediaVendas
+                            Double mediaVendas,
+                            Venda.statusVenda statusVenda
+
 ) {
     public static VendaResponse convert(Venda venda, Integer totalVendas, Double valorTotal, Double mediaVendas) {
         return new VendaResponse(
@@ -14,7 +16,8 @@ public record VendaResponse(Long id,
                 venda.getQuantidade(),
                 totalVendas,
                 valorTotal,
-                mediaVendas
+                mediaVendas,
+                Venda.statusVenda.ANDAMENTO
         );
     }
 }
