@@ -11,7 +11,7 @@ public interface VendaRepository extends JpaRepository<Venda, Long> {
 
     List<Venda> findByVendedorId(Long vendedorId);
 
-    List<Venda> findAllByDataCadastroBetween(LocalDateTime inicio, LocalDateTime fim);
-
     Optional<Venda> findById(Long id);
+
+    List<Venda> findByVendedorIdAndDataCadastroBetween(Long idVendedor, LocalDateTime dataInicio, LocalDateTime dataFim);
 }

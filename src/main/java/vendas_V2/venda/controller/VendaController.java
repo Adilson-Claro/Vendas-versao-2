@@ -47,9 +47,9 @@ public class VendaController {
         }
     }
 
-    @GetMapping
-    public ResponseEntity<List<VendaResponseCompleta>> buscarVenda() {
-        var vendas = vendaService.buscarVendas();
+    @GetMapping("{id}")
+    public ResponseEntity<List<VendaResponseCompleta>> buscarVendaPorVendedor(@PathVariable Long id) {
+        var vendas = vendaService.buscarVendasPorVendedor(id);
         return ResponseEntity.ok(vendas);
     }
 
@@ -63,13 +63,14 @@ public class VendaController {
         return ResponseEntity.ok("Venda atualizada com sucesso!");
     }
 
-    @GetMapping("periodo")
+    @GetMapping("{id}/periodo")
     public List<VendaResponseCompleta> buscarVendasPorPeriodo(
+            @PathVariable("id") Long idVendedor,
             @RequestParam String dataInicio,
             @RequestParam String dataFim) {
 
-        var request = new VendasPorPeriodoRequest(dataInicio, dataFim);
-        return vendaService.buscarVendasPorPeriodo(request);
+        var request = new VendasPorPeriodoRequest(idVendedor, dataInicio, dataFim);
+        return vendaService.buscarVendasPorPeriodo(idVendedor, request);
     }
 }
 

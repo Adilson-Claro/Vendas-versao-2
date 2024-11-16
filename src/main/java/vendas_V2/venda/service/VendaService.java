@@ -3,6 +3,7 @@ package vendas_V2.venda.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import vendas_V2.common.utils.Calculos;
+import vendas_V2.common.utils.NotFoundException;
 import vendas_V2.common.utils.validations.Validations;
 import vendas_V2.produto.dto.ProdutoResponse;
 import vendas_V2.produto.repository.ProdutoRepository;
@@ -34,7 +35,7 @@ public class VendaService {
     public void salvarVenda(VendaRequest request) {
         var produto = validations.verificarProdutoExistente(request.produtoId());
         var vendedor = validations.verificarVendedorExistente(request.vendedorId());
-        var vendedorStatus = validations.verficarStatusVendedor(request.vendedorId());
+        validations.verficarStatusVendedor(request.vendedorId());
         validations.verificarQuantidadeEstoque(produto, request.quantidade());
 
         var venda = calculos.construirVenda(vendedor.getId(), produto.getId(), request.quantidade());
@@ -49,7 +50,7 @@ public class VendaService {
     public Venda aprovarVenda(Long vendaId) {
         Venda venda = buscarVendaPorId(vendaId);
 
-        var statusVenda = validations.vendaStatus(vendaId);
+        validations.vendaStatus(vendaId);
 
         var produto = validations.verificarProdutoExistente(venda.getProdutoId());
         produto.setQuantidade(produto.getQuantidade() - venda.getQuantidade());
@@ -73,18 +74,19 @@ public class VendaService {
             venda.setStatus(Venda.statusVenda.CANCELADO);
             vendaRepository.save(venda);
         } else {
-            var procurarVenda = validations.verificarVendaExistente(vendaId);
+            validations.verificarVendaExistente(vendaId);
         }
     }
 
-    public List<VendaResponseCompleta> buscarVendas() {
-        var vendas = vendaRepository.findAll();
+    public List<VendaResponseCompleta> buscarVendasPorVendedor(Long vendedorId) {
+
+        var vendas = vendaRepository.findByVendedorId(vendedorId);
 
         return vendas.stream()
                 .map(venda -> {
                     var vendedor = validations.verificarVendedorExistente(venda.getVendedorId());
                     var produto = validations.verificarProdutoExistente(venda.getProdutoId());
-                    var existVenda = validations.verificarVendaExistente(venda.getId());
+                    var vendaExistente = validations.verificarVendaExistente(venda.getId());
 
                     var totalVendas = calculos.calcularTotalVendasPorVendedor(vendedor.getId());
 
@@ -93,7 +95,7 @@ public class VendaService {
                     var mediaVendas = calculos.calcularMediaVendas(valorTotal, totalVendas);
 
                     return VendaResponseCompleta.convert(
-                            VendaResponse.convert(existVenda, totalVendas, valorTotal, mediaVendas),
+                            VendaResponse.convert(vendaExistente, totalVendas, valorTotal, mediaVendas),
                             ProdutoResponse.convert(produto),
                             VendedorResponse.convert(vendedor)
                     );
@@ -122,49 +124,41 @@ public class VendaService {
         );
     }
 
-    public List<VendaResponseCompleta> buscarVendasPorPeriodo(VendasPorPeriodoRequest request) {
-        var dataInicio = request.getDataInicio();
-        var dataFim = request.getDataFim();
+    public List<VendaResponseCompleta> buscarVendasPorPeriodo(Long idVendedor, VendasPorPeriodoRequest request) {
+        var vendedor = validations.verificarVendedorExistente(idVendedor);
+        var dataInicio = request.getDataInicio().atStartOfDay();
+        var dataFim = request.getDataFim().atTime(23, 59, 59);
 
-        var vendas = vendaRepository.findAllByDataCadastroBetween(dataInicio.atStartOfDay(), dataFim.atTime(23, 59, 59));
+        List<Venda> vendas = vendaRepository.findByVendedorIdAndDataCadastroBetween(idVendedor, dataInicio, dataFim);
 
-        Map<Long, List<Venda>> vendasPorVendedor = vendas.stream()
-                .collect(Collectors.groupingBy(Venda::getVendedorId));
-
-        List<VendaResponseCompleta> resultado = new ArrayList<>();
-
-        // Processar cada grupo de vendas por vendedor, manipula mapa
-        for (Map.Entry<Long, List<Venda>> entry : vendasPorVendedor.entrySet()) {
-            var vendedorId = entry.getKey();
-            var vendasDoVendedor = entry.getValue();
-
-            var valorTotal = 0;
-
-            for (Venda venda : vendasDoVendedor) {
-                var produto = validations.verificarProdutoExistente(venda.getProdutoId());
-                valorTotal += calculos.calcularValorTotal(venda.getQuantidade(), produto.getValor());
-            }
-
-            var diasNoPeriodo = ChronoUnit.DAYS.between(dataInicio, dataFim) + 1;
-            var mediaVendas = (diasNoPeriodo > 0) ? valorTotal / diasNoPeriodo : 0;
-
-            var valorTotalArredondado = BigDecimal.valueOf(valorTotal).setScale(2, RoundingMode.HALF_UP);
-            var mediaVendasArredondada = BigDecimal.valueOf(mediaVendas).setScale(2, RoundingMode.HALF_UP);
-
-            var vendedor = validations.verificarVendedorExistente(vendedorId);
-
-            for (var venda : vendasDoVendedor) {
-                var produto = validations.verificarProdutoExistente(venda.getProdutoId());
-
-                resultado.add(VendaResponseCompleta.convert(
-                        VendaResponse.convert(venda, vendasDoVendedor.size(), valorTotalArredondado.doubleValue(), mediaVendasArredondada.doubleValue()),
-                        ProdutoResponse.convert(produto),
-                        VendedorResponse.convert(vendedor)
-                ));
-            }
+        if (vendas.isEmpty()) {
+            throw new NotFoundException("Nenhuma venda encontrada para este vendedor no período especificado.");
         }
 
-        return resultado;
+        double valorTotal = vendas.stream()
+                .mapToDouble(venda -> {
+                    var produto = validations.verificarProdutoExistente(venda.getProdutoId());
+                    return calculos.calcularValorTotal(venda.getQuantidade(), produto.getValor());
+                })
+                .sum();
+
+        var diasNoPeriodo = ChronoUnit.DAYS.between(request.getDataInicio(), request.getDataFim()) + 1;
+        var mediaVendas = diasNoPeriodo > 0 ? valorTotal / diasNoPeriodo : 0;
+
+        var valorTotalArredondado = BigDecimal.valueOf(valorTotal).setScale(2, RoundingMode.HALF_UP);
+        var mediaVendasArredondada = BigDecimal.valueOf(mediaVendas).setScale(2, RoundingMode.HALF_UP);
+
+        return vendas.stream()
+                .map(venda -> {
+                    var produto = validations.verificarProdutoExistente(venda.getProdutoId());
+                    return VendaResponseCompleta.convert(
+                            VendaResponse.convert(venda, vendas.size(), valorTotalArredondado.doubleValue(), mediaVendasArredondada.doubleValue()),
+                            ProdutoResponse.convert(produto),
+                            VendedorResponse.convert(vendedor)
+                    );
+                })
+                .collect(Collectors.toList());
     }
+
 }
 

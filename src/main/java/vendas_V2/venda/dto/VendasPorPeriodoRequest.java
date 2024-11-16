@@ -4,7 +4,8 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 
-public record VendasPorPeriodoRequest(@NotNull String dataInicio,
+public record VendasPorPeriodoRequest(@NotNull Long idVendedor,
+                                      @NotNull String dataInicio,
                                       @NotNull String dataFim) {
     public LocalDate getDataInicio() {
         return LocalDate.parse(dataInicio, java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
