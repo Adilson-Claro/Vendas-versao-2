@@ -11,7 +11,7 @@ import vendas_V2.produto.repository.ProdutoRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -20,10 +20,30 @@ public class ProdutoService {
     private final ProdutoRepository produtoRepository;
     private final Validations validations;
 
-    public List<Produto> salvarListaProdutos(List<ProdutoRequest> request) {
-        var listaProdutos = request.stream()
-                .map(produtoRequest -> new Produto(null, produtoRequest.nome(), produtoRequest.valor(), produtoRequest.quantidade()))
-                .collect(Collectors.toList());
+    public List<Produto> salvarListaProdutos(List<ProdutoRequest> produtos) {
+
+        List<String> nomeProdutos = produtos.stream()
+                .map(ProdutoRequest::nome)
+                .filter(Objects::nonNull)
+                .toList();
+
+        if (!nomeProdutos.isEmpty()) {
+            List<Produto> produtosExistentes = produtoRepository.findByNomeIn(nomeProdutos);
+
+            if (!produtosExistentes.isEmpty()) {
+                throw new NotFoundException("Os seguintes produtos já estão cadastrados: " + nomeProdutos);
+            }
+        }
+
+        List<Produto> listaProdutos = produtos.stream()
+                .map(produtoRequest -> Produto.convert(
+                        null,
+                        produtoRequest.nome(),
+                        produtoRequest.valor(),
+                        produtoRequest.quantidade()
+                ))
+                .toList();
+
         return produtoRepository.saveAll(listaProdutos);
     }
 

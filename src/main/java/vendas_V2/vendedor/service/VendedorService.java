@@ -9,6 +9,7 @@ import vendas_V2.vendedor.dto.VendedorResponse;
 import vendas_V2.vendedor.model.Vendedor;
 import vendas_V2.vendedor.repository.VendedorRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,16 +20,25 @@ public class VendedorService {
     private final VendedorRepository vendedorRepository;
     private final Validations validations;
 
-    public List<Vendedor> salvarListaVendedores(List<VendedorRequest> vendedor) {
-        var listaVendedores = vendedor.stream()
-                .map(vendedorRequest -> new Vendedor(null, vendedorRequest.nome(), vendedorRequest.cpf(), Vendedor.statusVendedor.ATIVO))
-                .collect(Collectors.toList());
+    public List<Vendedor> salvarListaVendedores(List<VendedorRequest> vendedores) {
+        List<Vendedor> listaVendedores = new ArrayList<>();
+
+        for (VendedorRequest vendedorRequest : vendedores) {
+
+            if (vendedorRepository.findByCpf(vendedorRequest.cpf()).isPresent()) {
+                throw new NotFoundException("Vendedor com CPF " + vendedorRequest.cpf() + " já está cadastrado");
+            }
+
+            var vendedor = new Vendedor(
+                    null,
+                    vendedorRequest.nome(),
+                    vendedorRequest.cpf(),
+                    Vendedor.statusVendedor.ATIVO
+            );
+            listaVendedores.add(vendedor);
+        }
+
         return vendedorRepository.saveAll(listaVendedores);
-    }
-
-    private Vendedor construirVendedor(String nome, String cpf) {
-
-        return Vendedor.convert(null, nome, cpf);
     }
 
     public List<VendedorResponse> buscarVendedor() {
