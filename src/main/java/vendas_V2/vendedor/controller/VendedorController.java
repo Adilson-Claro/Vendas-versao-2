@@ -35,6 +35,12 @@ public class VendedorController {
         return ResponseEntity.noContent().build(); //retorna 204 de venda deletada com sucesso
     }
 
+    @PutMapping("{id}/reativar")
+    public ResponseEntity<String> reativarVendedor(@PathVariable Long id) {
+        vendedorService.reativarVendedor(id);
+        return ResponseEntity.ok("Vendedor reativado");
+    }
+
     @PutMapping("{id}")
     public ResponseEntity<String> atualizarVendedor(
             @PathVariable Long id,

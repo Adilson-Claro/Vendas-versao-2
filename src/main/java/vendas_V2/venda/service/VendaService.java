@@ -18,9 +18,7 @@ import vendas_V2.vendedor.dto.VendedorResponse;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,7 +33,7 @@ public class VendaService {
     public void salvarVenda(VendaRequest request) {
         var produto = validations.verificarProdutoExistente(request.produtoId());
         var vendedor = validations.verificarVendedorExistente(request.vendedorId());
-        validations.verficarStatusVendedor(request.vendedorId());
+        validations.verficarStatusVendedorAtivo(request.vendedorId());
         validations.verificarQuantidadeEstoque(produto, request.quantidade());
 
         var venda = calculos.construirVenda(vendedor.getId(), produto.getId(), request.quantidade());
@@ -129,13 +127,13 @@ public class VendaService {
         var dataInicio = request.getDataInicio().atStartOfDay();
         var dataFim = request.getDataFim().atTime(23, 59, 59);
 
-        List<Venda> vendas = vendaRepository.findByVendedorIdAndDataCadastroBetween(idVendedor, dataInicio, dataFim);
+        var vendas = vendaRepository.findByVendedorIdAndDataCadastroBetween(idVendedor, dataInicio, dataFim);
 
         if (vendas.isEmpty()) {
             throw new NotFoundException("Nenhuma venda encontrada para este vendedor no período especificado.");
         }
 
-        double valorTotal = vendas.stream()
+        var valorTotal = vendas.stream()
                 .mapToDouble(venda -> {
                     var produto = validations.verificarProdutoExistente(venda.getProdutoId());
                     return calculos.calcularValorTotal(venda.getQuantidade(), produto.getValor());

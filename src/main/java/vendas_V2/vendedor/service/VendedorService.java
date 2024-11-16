@@ -44,16 +44,24 @@ public class VendedorService {
     }
     public void deletarVendedor(Long id) {
 
-        var vendedorStatus = validations.verficarStatusVendedor(id);
+        var vendedorStatus = validations.verficarStatusVendedorAtivo(id);
         var vendedor = validations.verificarVendedorExistente(id);
 
             vendedor.setStatus(Vendedor.statusVendedor.INATIVO);
             vendedorRepository.save(vendedor);
     }
 
+    public void reativarVendedor(Long id) {
+        var vendedorStatus = validations.verficarStatusVendedorInativo(id);
+        var vendedor = validations.verificarVendedorExistente(id);
+
+        vendedorStatus.setStatus(Vendedor.statusVendedor.ATIVO);
+        vendedorRepository.save(vendedor);
+    }
+
     public VendedorResponse atualizarVendedor(Long id, VendedorRequest request) {
 
-        var vendedorStatus = validations.verficarStatusVendedor(id);
+        var vendedorStatus = validations.verficarStatusVendedorAtivo(id);
         var existVendedor = validations.verificarVendedorExistente(id);
 
         existVendedor.setNome(request.nome());

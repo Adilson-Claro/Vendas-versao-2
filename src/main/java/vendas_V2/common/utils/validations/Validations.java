@@ -38,10 +38,16 @@ public class Validations {
                 .orElseThrow(() -> new NotFoundException("Venda não encontrada para o ID: " + vendaId));
     }
 
-    public Vendedor verficarStatusVendedor(Long vendedorId) {
+    public Vendedor verficarStatusVendedorAtivo(Long vendedorId) {
         return vendedorRepository.findById(vendedorId)
                 .filter(vendedor -> vendedor.getStatus() != Vendedor.statusVendedor.INATIVO)
                 .orElseThrow(() -> new NotFoundException("Vendedor INATIVO"));
+    }
+
+    public Vendedor verficarStatusVendedorInativo(Long vendedorId) {
+        return vendedorRepository.findById(vendedorId)
+                .filter(vendedor -> vendedor.getStatus() != Vendedor.statusVendedor.ATIVO)
+                .orElseThrow(() -> new NotFoundException("Vendedor ATIVO"));
     }
 
     public Venda vendaStatus(Long vendaId) {
