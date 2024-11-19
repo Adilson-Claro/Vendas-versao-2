@@ -1,4 +1,4 @@
-package vendas_V2.common.utils;
+package vendas_V2.common.ExceptionsUtils;
 
 public class NotFoundException extends RuntimeException {
 

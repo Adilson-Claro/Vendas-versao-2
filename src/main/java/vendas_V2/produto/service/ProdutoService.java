@@ -2,8 +2,8 @@ package vendas_V2.produto.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import vendas_V2.common.utils.NotFoundException;
-import vendas_V2.common.utils.validations.Validations;
+import vendas_V2.common.ExceptionsUtils.NotFoundException;
+import vendas_V2.common.ValidationsUtils.Validations;
 import vendas_V2.produto.dto.ProdutoRequest;
 import vendas_V2.produto.dto.ProdutoResponse;
 import vendas_V2.produto.model.Produto;
@@ -20,7 +20,7 @@ public class ProdutoService {
     private final ProdutoRepository produtoRepository;
     private final Validations validations;
 
-    public List<Produto> salvarListaProdutos(List<ProdutoRequest> produtos) {
+    public void salvarListaProdutos(List<ProdutoRequest> produtos) {
 
         List<String> nomeProdutos = produtos.stream()
                 .map(ProdutoRequest::nome)
@@ -44,7 +44,7 @@ public class ProdutoService {
                 ))
                 .toList();
 
-        return produtoRepository.saveAll(listaProdutos);
+        produtoRepository.saveAll(listaProdutos);
     }
 
     private Produto construirProduto(String nome, BigDecimal valor, Integer quantidade) {
@@ -67,7 +67,7 @@ public class ProdutoService {
 
     public Produto atualizarProduto(ProdutoRequest request) {
 
-        var localizarProduto = produtoRepository.findById(request.id());
+        produtoRepository.findById(request.id());
 
         if (produtoRepository.existsById(request.id())) {
             var alterarProduto = construirProduto(request.nome(), request.valor(), request.quantidade());
@@ -81,12 +81,12 @@ public class ProdutoService {
 
     public void deletarProduto(Long id) {
 
-        var produto = validations.verificarProdutoExistente(id);
+        validations.verificarProdutoExistente(id);
 
         produtoRepository.deleteById(id);
     }
 
-    public ProdutoResponse atualizarProduto(Long id, ProdutoRequest request) {
+    public void atualizarProduto(Long id, ProdutoRequest request) {
 
         var existProduto = validations.verificarProdutoExistente(id);
 
@@ -95,6 +95,6 @@ public class ProdutoService {
 
         var produtoAtualizado = produtoRepository.save(existProduto);
 
-        return ProdutoResponse.convert(produtoAtualizado);
+        ProdutoResponse.convert(produtoAtualizado);
     }
 }

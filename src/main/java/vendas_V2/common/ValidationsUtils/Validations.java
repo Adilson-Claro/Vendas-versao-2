@@ -1,8 +1,8 @@
-package vendas_V2.common.utils.validations;
+package vendas_V2.common.ValidationsUtils;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import vendas_V2.common.utils.NotFoundException;
+import vendas_V2.common.ExceptionsUtils.NotFoundException;
 import vendas_V2.produto.model.Produto;
 import vendas_V2.produto.repository.ProdutoRepository;
 import vendas_V2.venda.model.Venda;

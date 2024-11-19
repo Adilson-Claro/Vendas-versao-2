@@ -10,6 +10,7 @@ public record VendaResponse(Long id,
                             Venda.statusVenda statusVenda
 
 ) {
+
     public static VendaResponse convert(Venda venda, Integer totalVendas, Double valorTotal, Double mediaVendas) {
         return new VendaResponse(
                 venda.getId(),
@@ -17,7 +18,7 @@ public record VendaResponse(Long id,
                 totalVendas,
                 valorTotal,
                 mediaVendas,
-                Venda.statusVenda.ANDAMENTO
+                venda.getStatus()
         );
     }
 }

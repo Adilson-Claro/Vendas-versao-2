@@ -1,4 +1,4 @@
-package vendas_V2.common.utils;
+package vendas_V2.common.ExceptionsUtils;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

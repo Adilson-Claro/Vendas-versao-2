@@ -46,7 +46,7 @@ public class VendedorController {
             @PathVariable Long id,
             @RequestBody VendedorRequest request) {
 
-        var vendedorAtualizado = vendedorService.atualizarVendedor(id, request);
+        vendedorService.atualizarVendedor(id, request);
 
         return ResponseEntity.ok("Dados do vendedor atualizados com sucesso!");
     }

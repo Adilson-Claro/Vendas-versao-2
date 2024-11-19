@@ -22,7 +22,7 @@ public class Vendedor {
 
     @Column(nullable = false)
     private String cpf;
-    
+
     @Enumerated(EnumType.STRING)
     private statusVendedor status = statusVendedor.ATIVO;
 
@@ -34,8 +34,8 @@ public class Vendedor {
         vendedor.setStatus(statusVendedor.ATIVO);
         return vendedor;
     }
-    
-    public enum statusVendedor{
+
+    public enum statusVendedor {
         ATIVO,
         INATIVO
     }

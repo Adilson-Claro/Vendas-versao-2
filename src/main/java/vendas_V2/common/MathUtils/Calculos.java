@@ -1,4 +1,4 @@
-package vendas_V2.common.utils;
+package vendas_V2.common.MathUtils;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

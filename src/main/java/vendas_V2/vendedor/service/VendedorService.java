@@ -2,8 +2,8 @@ package vendas_V2.vendedor.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import vendas_V2.common.utils.NotFoundException;
-import vendas_V2.common.utils.validations.Validations;
+import vendas_V2.common.ExceptionsUtils.NotFoundException;
+import vendas_V2.common.ValidationsUtils.Validations;
 import vendas_V2.vendedor.dto.VendedorRequest;
 import vendas_V2.vendedor.dto.VendedorResponse;
 import vendas_V2.vendedor.model.Vendedor;
@@ -11,7 +11,6 @@ import vendas_V2.vendedor.repository.VendedorRepository;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +19,7 @@ public class VendedorService {
     private final VendedorRepository vendedorRepository;
     private final Validations validations;
 
-    public List<Vendedor> salvarListaVendedores(List<VendedorRequest> vendedores) {
+    public void salvarListaVendedores(List<VendedorRequest> vendedores) {
         List<Vendedor> listaVendedores = new ArrayList<>();
 
         for (VendedorRequest vendedorRequest : vendedores) {
@@ -38,7 +37,7 @@ public class VendedorService {
             listaVendedores.add(vendedor);
         }
 
-        return vendedorRepository.saveAll(listaVendedores);
+        vendedorRepository.saveAll(listaVendedores);
     }
 
     public List<VendedorResponse> buscarVendedor() {
@@ -52,13 +51,14 @@ public class VendedorService {
                 .map(VendedorResponse::convert)
                 .toList();
     }
+
     public void deletarVendedor(Long id) {
 
-        var vendedorStatus = validations.verficarStatusVendedorAtivo(id);
+        validations.verficarStatusVendedorAtivo(id);
         var vendedor = validations.verificarVendedorExistente(id);
 
-            vendedor.setStatus(Vendedor.statusVendedor.INATIVO);
-            vendedorRepository.save(vendedor);
+        vendedor.setStatus(Vendedor.statusVendedor.INATIVO);
+        vendedorRepository.save(vendedor);
     }
 
     public void reativarVendedor(Long id) {
@@ -71,7 +71,7 @@ public class VendedorService {
 
     public VendedorResponse atualizarVendedor(Long id, VendedorRequest request) {
 
-        var vendedorStatus = validations.verficarStatusVendedorAtivo(id);
+        validations.verficarStatusVendedorAtivo(id);
         var existVendedor = validations.verificarVendedorExistente(id);
 
         existVendedor.setNome(request.nome());

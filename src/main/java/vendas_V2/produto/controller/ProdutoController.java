@@ -8,7 +8,6 @@ import vendas_V2.produto.dto.ProdutoRequest;
 import vendas_V2.produto.dto.ProdutoResponse;
 import vendas_V2.produto.service.ProdutoService;
 
-import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -47,7 +46,7 @@ public class ProdutoController {
             @PathVariable Long id,
             @RequestBody ProdutoRequest produtoRequest) {
 
-        var produtoAtualizado = produtoService.atualizarProduto(id, produtoRequest);
+        produtoService.atualizarProduto(id, produtoRequest);
 
         return ResponseEntity.ok("Dados do produto atualizado com sucesso!");
     }

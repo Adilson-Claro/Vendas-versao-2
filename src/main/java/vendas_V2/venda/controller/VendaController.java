@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import vendas_V2.common.utils.NotFoundException;
+import vendas_V2.common.ExceptionsUtils.NotFoundException;
 import vendas_V2.venda.dto.VendaRequest;
 import vendas_V2.venda.dto.VendaResponseCompleta;
 import vendas_V2.venda.dto.VendasPorPeriodoRequest;
@@ -31,7 +31,7 @@ public class VendaController {
 
     @PutMapping("aprovar/{id}")
     public ResponseEntity<Venda> aprovarVenda(@PathVariable Long id) {
-        Venda venda = vendaService.aprovarVenda(id);
+        var venda = vendaService.aprovarVenda(id);
         return ResponseEntity.ok(venda);
     }
 
@@ -58,7 +58,7 @@ public class VendaController {
             @PathVariable Long id,
             @RequestBody VendaRequest vendaRequest) {
 
-        var vendaAtualizada = vendaService.alterarVenda(id, vendaRequest);
+        vendaService.alterarVenda(id, vendaRequest);
 
         return ResponseEntity.ok("Venda atualizada com sucesso!");
     }
