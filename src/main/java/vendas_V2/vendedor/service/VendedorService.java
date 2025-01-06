@@ -4,10 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import vendas_V2.common.ExceptionsUtils.NotFoundException;
 import vendas_V2.common.ValidationsUtils.Validations;
+import vendas_V2.vendedor.VendedorRepository;
 import vendas_V2.vendedor.dto.VendedorRequest;
 import vendas_V2.vendedor.dto.VendedorResponse;
 import vendas_V2.vendedor.model.Vendedor;
-import vendas_V2.vendedor.repository.VendedorRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,9 +20,14 @@ public class VendedorService {
     private final Validations validations;
 
     public void salvarListaVendedores(List<VendedorRequest> vendedores) {
+        if (vendedores.isEmpty()) {
+            throw new IllegalArgumentException("A lista de vendedores não pode ser vazia");
+        }
+
         List<Vendedor> listaVendedores = new ArrayList<>();
 
         for (VendedorRequest vendedorRequest : vendedores) {
+            validarVendedor(vendedorRequest);
 
             if (vendedorRepository.findByCpf(vendedorRequest.cpf()).isPresent()) {
                 throw new NotFoundException("Vendedor com CPF " + vendedorRequest.cpf() + " já está cadastrado");
@@ -40,6 +45,25 @@ public class VendedorService {
         vendedorRepository.saveAll(listaVendedores);
     }
 
+    private void validarVendedor(VendedorRequest vendedorRequest) {
+        if (vendedorRequest.nome() == null || vendedorRequest.nome().isBlank()) {
+            throw new IllegalArgumentException("Nome não pode ser nulo ou vazio");
+        }
+
+        if (vendedorRequest.cpf() == null || vendedorRequest.cpf().isBlank()) {
+            throw new IllegalArgumentException("CPF não pode ser nulo ou vazio");
+        }
+
+        if (!isCpfValido(vendedorRequest.cpf())) {
+            throw new IllegalArgumentException("CPF inválido");
+        }
+    }
+
+    private boolean isCpfValido(String cpf) {
+
+        return cpf != null && cpf.matches("\\d{11}");
+    }
+
     public List<VendedorResponse> buscarVendedor() {
         var vendedor = vendedorRepository.findAll();
 
@@ -52,10 +76,13 @@ public class VendedorService {
                 .toList();
     }
 
-    public void deletarVendedor(Long id) {
+    public void deletarVendedor(Long vendedorId) {
+        Vendedor vendedor = vendedorRepository.findById(vendedorId)
+                .orElseThrow(() -> new NotFoundException("Vendedor não encontrado"));
 
-        validations.verficarStatusVendedorAtivo(id);
-        var vendedor = validations.verificarVendedorExistente(id);
+        if (vendedor.getStatus() == Vendedor.statusVendedor.INATIVO) {
+            throw new IllegalStateException("Vendedor já está inativo");
+        }
 
         vendedor.setStatus(Vendedor.statusVendedor.INATIVO);
         vendedorRepository.save(vendedor);
@@ -63,6 +90,12 @@ public class VendedorService {
 
     public void reativarVendedor(Long id) {
         var vendedorStatus = validations.verficarStatusVendedorInativo(id);
+
+
+        if (vendedorStatus == null) {
+            throw new IllegalArgumentException("Vendedor já está ativo");
+        }
+
         var vendedor = validations.verificarVendedorExistente(id);
 
         vendedorStatus.setStatus(Vendedor.statusVendedor.ATIVO);
@@ -70,9 +103,13 @@ public class VendedorService {
     }
 
     public VendedorResponse atualizarVendedor(Long id, VendedorRequest request) {
-
         validations.verficarStatusVendedorAtivo(id);
+
         var existVendedor = validations.verificarVendedorExistente(id);
+
+        if (existVendedor == null) {
+            throw new NotFoundException("Vendedor não encontrado.");
+        }
 
         existVendedor.setNome(request.nome());
         existVendedor.setCpf(request.cpf());

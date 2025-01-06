@@ -1,4 +1,4 @@
-package vendas_V2.vendedor.repository;
+package vendas_V2.vendedor;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import vendas_V2.vendedor.model.Vendedor;

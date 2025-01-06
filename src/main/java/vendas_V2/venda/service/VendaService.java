@@ -4,7 +4,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import vendas_V2.common.ExceptionsUtils.NotFoundException;
-import vendas_V2.common.MathUtils.Calculos;
 import vendas_V2.common.ValidationsUtils.Validations;
 import vendas_V2.produto.dto.ProdutoResponse;
 import vendas_V2.produto.repository.ProdutoRepository;
@@ -27,7 +26,6 @@ import java.util.stream.Collectors;
 public class VendaService {
 
     private final VendaRepository vendaRepository;
-    private final Calculos calculos;
     private final Validations validations;
     private final ProdutoRepository produtoRepository;
 
@@ -37,7 +35,8 @@ public class VendaService {
         validations.verficarStatusVendedorAtivo(request.vendedorId());
         validations.verificarQuantidadeEstoque(produto, request.quantidade());
 
-        var venda = calculos.construirVenda(vendedor.getId(), produto.getId(), request.quantidade());
+        var valorTotal = produto.getValor().multiply(new BigDecimal(request.quantidade()));
+        var venda = Venda.convert(vendedor, produto, request.quantidade(), valorTotal);
         vendaRepository.save(venda);
     }
 
@@ -50,7 +49,7 @@ public class VendaService {
     public Venda aprovarVenda(Long vendaId) {
         var venda = buscarVendaPorId(vendaId);
 
-        var produto = validations.verificarProdutoExistente(venda.getProdutoId());
+        var produto = validations.verificarProdutoExistente(venda.getProduto().getId());
         produto.setQuantidade(produto.getQuantidade() - venda.getQuantidade());
         produtoRepository.save(produto);
 
@@ -63,7 +62,7 @@ public class VendaService {
         var optionalVenda = vendaRepository.findById(vendaId);
         if (optionalVenda.isPresent()) {
             var venda = optionalVenda.get();
-            var produto = validations.verificarProdutoExistente(venda.getProdutoId());
+            var produto = validations.verificarProdutoExistente(venda.getProduto().getId());
 
             if (venda.getStatus() == Venda.statusVenda.APROVADO || venda.getStatus() == Venda.statusVenda.ANDAMENTO) {
                 produto.setQuantidade(produto.getQuantidade() + venda.getQuantidade());
@@ -80,13 +79,13 @@ public class VendaService {
 
         return vendas.stream()
                 .map(venda -> {
-                    var vendedor = validations.verificarVendedorExistente(venda.getVendedorId());
-                    var produto = validations.verificarProdutoExistente(venda.getProdutoId());
+                    var vendedor = validations.verificarVendedorExistente(venda.getVendedor().getId());
+                    var produto = validations.verificarProdutoExistente(venda.getProduto().getId());
                     var vendaExistente = validations.verificarVendaExistente(venda.getId());
 
-                    var totalVendas = calculos.calcularTotalVendasPorVendedor(vendedor.getId());
-                    var valorTotal = calculos.calcularValorTotal(venda.getQuantidade(), produto.getValor());
-                    var mediaVendas = calculos.calcularMediaVendas(valorTotal, totalVendas);
+                    var totalVendas = vendaRepository.calcularTotalVendasPorVendedor(vendedorId);
+                    var valorTotal = vendaRepository.calcularValorTotal(venda.getQuantidade(), produto.getId());
+                    var mediaVendas = vendaRepository.calcularMediaVendas(vendedorId);
 
                     return VendaResponseCompleta.convert(
                             VendaResponse.convert(vendaExistente, totalVendas, valorTotal, mediaVendas),
@@ -100,15 +99,15 @@ public class VendaService {
     public void alterarVenda(Long id, VendaRequest vendaRequest) {
 
         var vendaExistente = validations.verificarVendaExistente(id);
-        var vendedor = validations.verificarVendedorExistente(vendaExistente.getVendedorId());
-        var produto = validations.verificarProdutoExistente(vendaExistente.getProdutoId());
+        var vendedor = validations.verificarVendedorExistente(vendaExistente.getVendedor().getId());
+        var produto = validations.verificarProdutoExistente(vendaExistente.getProduto().getId());
 
         vendaExistente.setQuantidade(vendaRequest.quantidade());
         var vendaAtualizada = vendaRepository.save(vendaExistente);
 
-        var totalVendas = calculos.calcularTotalVendasPorVendedor(vendedor.getId());
-        var valorTotal = calculos.calcularValorTotal(vendaAtualizada.getQuantidade(), produto.getValor());
-        var mediaVendas = calculos.calcularMediaVendas(valorTotal, totalVendas);
+        var totalVendas = vendaRepository.calcularTotalVendasPorVendedor(vendaRequest.vendedorId());
+        var valorTotal = vendaRepository.calcularValorTotal(vendaRequest.quantidade(), vendaRequest.produtoId());
+        var mediaVendas = vendaRepository.calcularMediaVendas(vendaRequest.vendedorId());
 
         VendaResponseCompleta.convert(
                 VendaResponse.convert(vendaAtualizada, totalVendas, valorTotal, mediaVendas),
@@ -130,10 +129,11 @@ public class VendaService {
 
         var valorTotal = vendas.stream()
                 .mapToDouble(venda -> {
-                    var produto = validations.verificarProdutoExistente(venda.getProdutoId());
-                    return calculos.calcularValorTotal(venda.getQuantidade(), produto.getValor());
+                    var produto = validations.verificarProdutoExistente(venda.getProduto().getId());
+                    return vendaRepository.calcularValorTotal(venda.getQuantidade(), produto.getId());
                 })
                 .sum();
+
 
         var diasNoPeriodo = ChronoUnit.DAYS.between(request.getDataInicio(), request.getDataFim()) + 1;
         var mediaVendas = diasNoPeriodo > 0 ? valorTotal / diasNoPeriodo : 0;
@@ -143,7 +143,7 @@ public class VendaService {
 
         return vendas.stream()
                 .map(venda -> {
-                    var produto = validations.verificarProdutoExistente(venda.getProdutoId());
+                    var produto = validations.verificarProdutoExistente(venda.getProduto().getId());
                     return VendaResponseCompleta.convert(
                             VendaResponse.convert(venda, vendas.size(), valorTotalArredondado.doubleValue(), mediaVendasArredondada.doubleValue()),
                             ProdutoResponse.convert(produto),

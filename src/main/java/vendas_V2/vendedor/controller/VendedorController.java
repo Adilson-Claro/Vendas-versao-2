@@ -32,7 +32,7 @@ public class VendedorController {
     @DeleteMapping("{id}")
     public ResponseEntity<Void> deletarVendedor(@PathVariable Long id) {
         vendedorService.deletarVendedor(id);
-        return ResponseEntity.noContent().build(); //retorna 204 de venda deletada com sucesso
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("{id}/reativar")

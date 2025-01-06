@@ -7,8 +7,8 @@ import vendas_V2.produto.model.Produto;
 import vendas_V2.produto.repository.ProdutoRepository;
 import vendas_V2.venda.model.Venda;
 import vendas_V2.venda.repository.VendaRepository;
+import vendas_V2.vendedor.VendedorRepository;
 import vendas_V2.vendedor.model.Vendedor;
-import vendas_V2.vendedor.repository.VendedorRepository;
 
 @Component
 @RequiredArgsConstructor
@@ -38,22 +38,16 @@ public class Validations {
                 .orElseThrow(() -> new NotFoundException("Venda não encontrada para o ID: " + vendaId));
     }
 
-    public Vendedor verficarStatusVendedorAtivo(Long vendedorId) {
-        return vendedorRepository.findById(vendedorId)
+    public void verficarStatusVendedorAtivo(Long vendedorId) {
+        vendedorRepository.findById(vendedorId)
                 .filter(vendedor -> vendedor.getStatus() != Vendedor.statusVendedor.INATIVO)
-                .orElseThrow(() -> new NotFoundException("Vendedor INATIVO"));
+                .orElseThrow(() -> new IllegalStateException("Vendedor INATIVO"));
     }
 
     public Vendedor verficarStatusVendedorInativo(Long vendedorId) {
         return vendedorRepository.findById(vendedorId)
                 .filter(vendedor -> vendedor.getStatus() != Vendedor.statusVendedor.ATIVO)
-                .orElseThrow(() -> new NotFoundException("Vendedor ATIVO"));
-    }
-
-    public Venda vendaStatus(Long vendaId) {
-        return vendaRepository.findById(vendaId)
-                .filter(venda -> venda.getStatus() == Venda.statusVenda.APROVADO)
-                .orElseThrow(() -> new NotFoundException("Venda já aprovada"));
+                .orElseThrow(() -> new IllegalStateException("Vendedor ATIVO"));
     }
 
     public void verificarQuantidadeEstoque(Produto produto, int quantidadeRequisitada) {
