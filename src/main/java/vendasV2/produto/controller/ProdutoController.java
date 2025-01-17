@@ -2,16 +2,15 @@ package vendasV2.produto.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import vendasV2.produto.dto.ProdutoRequest;
-import vendasV2.produto.dto.ProdutoResponse;
+import vendasV2.produto.model.Produto;
 import vendasV2.produto.repository.ProdutoRepository;
 import vendasV2.produto.service.ProdutoService;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("produto")
@@ -27,14 +26,14 @@ public class ProdutoController {
         produtoService.salvarListaProdutos(request);
     }
 
-    @GetMapping
-    public Page<ProdutoResponse> buscarProduto(Pageable produtos) {
-        return produtoRepository.findAll(produtos).map(ProdutoResponse::convert);
+    @GetMapping("{id}")
+    public Optional<Produto> buscarProduto(@PathVariable Long id) {
+        return produtoRepository.findById(id);
     }
 
     @DeleteMapping("{id}")
     public void deletarProduto(@PathVariable Long id) {
-        produtoRepository.deleteById(id);
+        produtoService.deletarProduto(id);
     }
 
     @PutMapping("{id}")
