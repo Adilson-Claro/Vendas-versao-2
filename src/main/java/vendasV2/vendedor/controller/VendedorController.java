@@ -2,6 +2,7 @@ package vendasV2.vendedor.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vendasV2.vendedor.dto.VendedorRequest;
@@ -18,14 +19,15 @@ public class VendedorController {
     private final VendedorService vendedorService;
 
     @PostMapping
-    public ResponseEntity<String> cadastrarVendedores(@RequestBody @Valid List<VendedorRequest> request) {
-        vendedorService.salvarListaVendedores(request);
-        return ResponseEntity.ok("Vendedores cadastrados com sucesso!");
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<String> cadastrarVendedores(@RequestBody @Valid List<VendedorRequest> vendedorRequests) {
+        vendedorService.salvarListaVendedores(vendedorRequests);
+        return ResponseEntity.ok("Vendedores salvos com sucesso!");
     }
 
-    @GetMapping
-    public ResponseEntity<List<VendedorResponse>> buscarVendedor() {
-        var vendedores = vendedorService.buscarVendedor();
+    @GetMapping("{id}")
+    public ResponseEntity<List<VendedorResponse>> buscarVendedor(@PathVariable Long id, VendedorRequest vendedorRequest) {
+        var vendedores = vendedorService.buscarVendedor(vendedorRequest);
         return ResponseEntity.ok(vendedores);
     }
 
@@ -35,19 +37,15 @@ public class VendedorController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("{id}/reativar")
+    @PutMapping("reativar/{id}")
     public ResponseEntity<String> reativarVendedor(@PathVariable Long id) {
         vendedorService.reativarVendedor(id);
         return ResponseEntity.ok("Vendedor reativado");
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<String> atualizarVendedor(
-            @PathVariable Long id,
-            @RequestBody VendedorRequest request) {
-
-        vendedorService.atualizarVendedor(id, request);
-
+    public ResponseEntity<String> atualizarVendedor(@PathVariable Long id, @RequestBody VendedorRequest vendedorRequest) {
+        vendedorService.atualizarVendedor(id, vendedorRequest);
         return ResponseEntity.ok("Dados do vendedor atualizados com sucesso!");
     }
 }
