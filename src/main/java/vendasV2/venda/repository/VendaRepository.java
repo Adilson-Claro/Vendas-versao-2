@@ -17,7 +17,7 @@ public interface VendaRepository extends JpaRepository<Venda, Long> {
     @Query("SELECT (p.valor * :quantidade) FROM Produto p WHERE p.id = :produtoId")
     Double calcularValorTotal(@Param("quantidade") Integer quantidade, @Param("produtoId") Long produtoId);
 
-    @Query("SELECT (SUM(v.valorTotal) / COUNT(v)) FROM Venda v WHERE v.vendedor.id = :vendedorId")
+    @Query("SELECT CASE WHEN COUNT(v) > 0 THEN SUM(COALESCE(v.valorTotal, 0)) / COUNT(v) ELSE 0 END FROM Venda v WHERE v.vendedor.id = :vendedorId AND v.valorTotal IS NOT NULL")
     Double calcularMediaVendas(@Param("vendedorId") Long vendedorId);
 
     List<Venda> findByVendedorId(Long vendedorId);
