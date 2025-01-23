@@ -24,7 +24,7 @@ class ProdutoRepositoryTest {
     private ProdutoRepository produtoRepository;
 
     @Test
-    void testProdutoSalvoRetornaProduto() {
+    void testDeveSalvarProduto() {
         var produtoRequest = new ProdutoRequest(1L, "Test", new BigDecimal("123.90"),10);
 
         var saveProduto = new Produto(produtoRequest.id(), produtoRequest.nome(),
@@ -92,7 +92,7 @@ class ProdutoRepositoryTest {
 
         var produtoSalvo = produtoRepository.save(produto);
 
-        var produtoOptional = produtoRepository.findById(produtoSalvo.getId());
+        produtoRepository.findById(produtoSalvo.getId());
 
         assertNotNull(produtoSalvo);
         assertEquals(produto.getId(), produtoSalvo.getId());
@@ -106,7 +106,7 @@ class ProdutoRepositoryTest {
 
         var produtoSalvo = produtoRepository.save(produto);
 
-        var produtoOptional = produtoRepository.findByNomeIn(Collections.singletonList(produtoSalvo.getNome()));
+        produtoRepository.findByNomeIn(Collections.singletonList(produtoSalvo.getNome()));
 
         assertNotNull(produtoSalvo);
         assertEquals(produto.getId(), produtoSalvo.getId());
