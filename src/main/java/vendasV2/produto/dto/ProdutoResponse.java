@@ -9,7 +9,7 @@ public record ProdutoResponse(Long id,
                               BigDecimal valorUnitario,
                               Integer quantidadeEstoque) {
 
-    public static ProdutoResponse convert(Produto produto) {
+    public static ProdutoResponse to(Produto produto) {
         return new ProdutoResponse(produto.getId(),
                 produto.getNome(),
                 produto.getValor(),

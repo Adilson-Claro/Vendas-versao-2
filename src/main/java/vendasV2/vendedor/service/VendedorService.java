@@ -24,7 +24,7 @@ public class VendedorService {
         validations.validarVendedor(vendedores);
 
         List<Vendedor> listaVendedores = vendedores.stream()
-                .map(vendedorRequest -> Vendedor.convert(
+                .map(vendedorRequest -> Vendedor.to(
                         null,
                         vendedorRequest.nome(),
                         vendedorRequest.cpf()

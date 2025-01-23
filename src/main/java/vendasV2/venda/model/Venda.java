@@ -42,7 +42,7 @@ public class Venda {
     @Column(nullable = false)
     private BigDecimal valorTotal;
 
-    public static Venda convert(Vendedor vendedor, Produto produto, Integer quantidade, BigDecimal valorTotal) {
+    public static Venda to(Vendedor vendedor, Produto produto, Integer quantidade, BigDecimal valorTotal) {
         var venda = new Venda();
         venda.setVendedor(vendedor);
         venda.setProduto(produto);

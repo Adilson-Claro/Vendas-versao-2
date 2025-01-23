@@ -3,6 +3,7 @@ package vendasV2.common.ValidationsUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import vendasV2.common.ExceptionsUtils.NotFoundException;
+import vendasV2.common.ExceptionsUtils.ProdutoJaCadastradoException;
 import vendasV2.common.ExceptionsUtils.QuantityInsufficientException;
 import vendasV2.produto.dto.ProdutoRequest;
 import vendasV2.produto.model.Produto;
@@ -97,7 +98,7 @@ public class Validations {
                         .map(Vendedor::getCpf)
                         .collect(Collectors.toSet());
 
-                throw new NotFoundException("Os seguintes vendedores já estão cadastrados: " + vendedoresExistentesCpfs);
+                throw new ProdutoJaCadastradoException("Os seguintes vendedores já estão cadastrados: " + vendedoresExistentesCpfs);
             }
         }
     }

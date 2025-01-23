@@ -11,7 +11,7 @@ public record VendaResponse(Long id,
 
 ) {
 
-    public static VendaResponse convert(Venda venda, Integer totalVendas, Double valorTotal, Double mediaVendas) {
+    public static VendaResponse to(Venda venda, Integer totalVendas, Double valorTotal, Double mediaVendas) {
         return new VendaResponse(
                 venda.getId(),
                 venda.getQuantidade(),

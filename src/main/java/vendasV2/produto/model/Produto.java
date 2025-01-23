@@ -26,7 +26,7 @@ public class Produto {
     @Column(nullable = false)
     private Integer quantidade;
 
-    public static Produto convert(Long id, String nome, BigDecimal valor, Integer quantidade) {
+    public static Produto to(Long id, String nome, BigDecimal valor, Integer quantidade) {
         var produto = new Produto();
         produto.setId(id);
         produto.setNome(nome);

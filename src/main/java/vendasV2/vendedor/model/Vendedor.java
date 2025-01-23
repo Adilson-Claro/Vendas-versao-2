@@ -26,7 +26,7 @@ public class Vendedor {
     @Enumerated(EnumType.STRING)
     private statusVendedor status = statusVendedor.ATIVO;
 
-    public static Vendedor convert(Long id, String nome, String cpf) {
+    public static Vendedor to(Long id, String nome, String cpf) {
         var vendedor = new Vendedor();
         vendedor.setId(id);
         vendedor.setNome(nome);

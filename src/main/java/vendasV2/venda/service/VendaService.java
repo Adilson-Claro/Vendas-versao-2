@@ -36,7 +36,7 @@ public class VendaService {
         validations.verificarQuantidadeEstoque(produto, request.quantidade());
 
         var valorTotal = produto.getValor().multiply(new BigDecimal(request.quantidade()));
-        var venda = Venda.convert(vendedor, produto, request.quantidade(), valorTotal);
+        var venda = Venda.to(vendedor, produto, request.quantidade(), valorTotal);
         vendaRepository.save(venda);
     }
 
@@ -87,9 +87,9 @@ public class VendaService {
                     var valorTotal = vendaRepository.calcularValorTotal(venda.getQuantidade(), produto.getId());
                     var mediaVendas = vendaRepository.calcularMediaVendas(vendedorId);
 
-                    return VendaResponseCompleta.convert(
-                            VendaResponse.convert(vendaExistente, totalVendas, valorTotal, mediaVendas),
-                            ProdutoResponse.convert(produto),
+                    return VendaResponseCompleta.to(
+                            VendaResponse.to(vendaExistente, totalVendas, valorTotal, mediaVendas),
+                            ProdutoResponse.to(produto),
                             VendedorResponse.convert(vendedor)
                     );
                 }).collect(Collectors.toList());
@@ -109,9 +109,9 @@ public class VendaService {
         var valorTotal = vendaRepository.calcularValorTotal(vendaRequest.quantidade(), vendaRequest.produtoId());
         var mediaVendas = vendaRepository.calcularMediaVendas(vendaRequest.vendedorId());
 
-        VendaResponseCompleta.convert(
-                VendaResponse.convert(vendaAtualizada, totalVendas, valorTotal, mediaVendas),
-                ProdutoResponse.convert(produto),
+        VendaResponseCompleta.to(
+                VendaResponse.to(vendaAtualizada, totalVendas, valorTotal, mediaVendas),
+                ProdutoResponse.to(produto),
                 VendedorResponse.convert(vendedor)
         );
     }
@@ -144,9 +144,9 @@ public class VendaService {
         return vendas.stream()
                 .map(venda -> {
                     var produto = validations.verificarProdutoExistente(venda.getProduto().getId());
-                    return VendaResponseCompleta.convert(
-                            VendaResponse.convert(venda, vendas.size(), valorTotalArredondado.doubleValue(), mediaVendasArredondada.doubleValue()),
-                            ProdutoResponse.convert(produto),
+                    return VendaResponseCompleta.to(
+                            VendaResponse.to(venda, vendas.size(), valorTotalArredondado.doubleValue(), mediaVendasArredondada.doubleValue()),
+                            ProdutoResponse.to(produto),
                             VendedorResponse.convert(vendedor)
                     );
                 })

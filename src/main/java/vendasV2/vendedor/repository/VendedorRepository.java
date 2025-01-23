@@ -8,8 +8,6 @@ import java.util.Optional;
 
 public interface VendedorRepository extends JpaRepository<Vendedor, Long> {
 
-    Optional<Vendedor> findByCpf(String cpf);
-
     List<Vendedor> findByCpfIn(List<String> Cpfs);
 
     Optional<Vendedor> findById(Long id);

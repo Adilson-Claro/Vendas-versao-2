@@ -17,13 +17,13 @@ public class ProdutoService {
     private final ProdutoRepository produtoRepository;
     private final Validations validations;
 
-    public void salvarListaProdutos(List<ProdutoRequest> produtos) {
+    public List<Produto> salvarListaProdutos(List<ProdutoRequest> produtos) {
 
         validations.validarProdutosJaCadastrados(produtos);
         validations.validarListaProdutos(produtos);
 
         List<Produto> listaProdutos = produtos.stream()
-                .map(produtoRequest -> Produto.convert(
+                .map(produtoRequest -> Produto.to(
                         null,
                         produtoRequest.nome(),
                         produtoRequest.valor(),
@@ -31,6 +31,7 @@ public class ProdutoService {
                 )).toList();
 
         produtoRepository.saveAll(listaProdutos);
+        return listaProdutos;
     }
 
     public List<ProdutoResponse> buscarProduto(ProdutoRequest request) {
@@ -38,7 +39,7 @@ public class ProdutoService {
         var produto = produtoRepository.findById(request.id());
 
         return produto.stream()
-                .map(ProdutoResponse::convert)
+                .map(ProdutoResponse::to)
                 .toList();
     }
 
@@ -48,11 +49,13 @@ public class ProdutoService {
 
         produtoExistente.setNome(request.nome());
         produtoExistente.setValor(request.valor());
+        produtoExistente.setQuantidade(request.quantidade());
 
         var produtoAtualizado = produtoRepository.save(produtoExistente);
 
-        ProdutoResponse.convert(produtoAtualizado);
+        ProdutoResponse.to(produtoAtualizado);
     }
+
     public void deletarProduto(Long id) {
 
         validations.verificarProdutoExistente(id);
